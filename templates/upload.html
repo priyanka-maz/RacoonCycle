@@ -1,0 +1,337 @@
+{% extends "layout.html" %}
+{% block content %}
+<html>
+<head>
+    <link rel="icon" href="static/ananees800.png">
+
+    <title>Uplead</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+      <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+    
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+
+    
+</head>
+    <body>
+        <div class="header-spacing"></div>
+        <form action="/upload" name="form" class="needs-validation" enctype="multipart/form-data" novalidate method="POST">
+            <div class="form-holder">
+            <label for="file" style="cursor: pointer;" class="form-label">
+            <div id="carouselExampleControls" class="carousel slide upload-preview" data-bs-ride="carousel"  data-bs-interval="false">
+                <div class="carousel-inner" id="upload-img-carosel">
+                  <div class="carousel-item active">
+                    <img src="/static/images/smile.png" class="d-block w-100">
+                  </div>
+               
+                </div>
+                <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+                    <i class="fa-solid fa-chevron-left fa-xl"></i>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button id="next" class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+                    <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                    <span class="visually-hidden">Next</span>
+                </button>
+              </div>
+            </label>
+            <br>
+            <label for="file" style="cursor: pointer;" class="form-label upload-image"><i class="fa-solid fa-arrow-up-from-bracket fa-lg"></i> &nbsp;&nbsp;Upload an image</label>
+            <input type="file"  accept="image/gif, image/jpeg, image/jpg, image/png" name="file" id="file" onchange="loadFile(event)" multiple hidden required>
+            <div class="invalid-feedback">
+                Please upload an image.
+            </div>
+            <br>
+            
+            <div class="row align-items-center">
+                <div style="width: 25px;"></div>
+                <div class="col-sm" style="padding-right: 20px;">
+                    <div class="form-floating">
+                        <textarea name="title" type = "text" class = "form-control"  id = "title"  placeholder="Description of the post..." minlength="10" maxlength="200"  onkeyup="titleLimit()" pattern="^[^<>]*$" required></textarea>
+                        <label for="title" class="col-form-label">Describe the image...</label>
+                        <div class="invalid-feedback">
+                            Description should be atleast 10 characters long.
+                        </div>
+                    </div>
+                        
+                </div>
+                <div class="col-sm-1">
+                    <div id="title-limit" class="limit">200</div>
+
+                </div>
+            </div>
+
+            <!--Hidden input field to store blob of images-->
+            <input name="blob" type = "text" class = "form-control"  id = "blob" hidden>
+
+            <br>
+            <div id="map">
+            </div>
+            <button id="current-location" type = "button" onclick="getLocation()"><i class="fa-solid fa-location-crosshairs fa-lg"></i> &nbsp;&nbsp;Get current location</button>           
+           
+            <!--Hidden input field to keep location coordinates-->
+            <input name="coordinates" type="text" id="coordinates" hidden>
+            <div class="invalid-feedback">
+                Select a location.
+            </div>
+            <br>
+
+            <div class="location-data">
+                <div class="row text-center">
+                    <div class="col d-flex justify-content-center align-items-center">
+                        <div type = "text" id="address"><i class="fa-solid fa-location-dot"></i>&nbsp;&nbsp;&nbsp;Address of the location&nbsp;&nbsp;</div>
+                    </div>
+                        <div class="col-md-3 d-flex justify-content-center">
+                        <div type = "text" id="lat"><i class="fa-solid fa-left-right"></i>&nbsp;&nbsp;&nbsp;Latitude</div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-center">
+                        <div type = "text" id="lon"><i class="fa-solid fa-up-down"></i>&nbsp;&nbsp;&nbsp;Longitude</div>
+                    </div>
+                </div>
+            </div> 
+
+
+            <input type="submit" value="Submit" class="btn submit" />
+            </div>
+        </form>
+        <!--Displays 1st image compressed, remove hidden to see. Not important for compression, just for testing-->
+        <img id="base64" hidden>
+
+    </body>
+    <script>
+        //Load files
+        var loadFile = function(event) {
+            
+            var blob_input = document.getElementById("blob");
+            var upload_container = document.getElementById("upload-img-carosel");
+            if(event.target.files.length!=0){
+                upload_container.innerHTML = ""
+                blob_input.value = '';
+            }
+            else{
+                console.log("fake");
+            }
+
+            //Enable arrows if multiple images
+           if(event.target.files.length > 1){
+            document.getElementById('prev').style.display='block';
+            document.getElementById('next').style.display='block';
+           }
+           var tallest = 0;
+            
+            for(var i=0; i<event.target.files.length; i++) {
+                carosel_item = document.createElement("div");
+                carosel_item.classList.add("carousel-item");
+                if(i==0){
+                    carosel_item.classList.add("active");
+                }
+                img = document.createElement("img");
+                img.classList.add("d-block", "w-100");
+                img.src=URL.createObjectURL(event.target.files[i]);
+                console.log(event.target.files[i]);
+                convertImageToBase64(img.src);
+                carosel_item.appendChild(img);
+                upload_container.appendChild(carosel_item);
+            }
+
+        };
+        //Compression function
+        function convertImageToBase64(imgUrl) {
+            //width or height, whichever is higher will be made 300px
+            var MAX_WIDTH = 300;
+            var MAX_HEIGHT = 300;
+            const image = new Image();
+            var base64 = document.getElementById("base64")
+            image.crossOrigin='anonymous';
+
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                var width = image.width;
+                var height = image.height;
+                // Change the resizing logic
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height = height * (MAX_WIDTH / width);
+                        width = MAX_WIDTH;
+                    }
+                } 
+                else {
+                    if (height > MAX_HEIGHT) {
+                        width = width * (MAX_HEIGHT / height);
+                        height = MAX_HEIGHT;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(image, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL();
+                
+                canvas.toBlob(function(blob) {
+                    // blob contains the image data in Blob format
+                    // You can do something with the blob, like create a URL or send it to a server
+                    var blob_input = document.getElementById('blob');
+                    var blobUrl = URL.createObjectURL(blob);
+                    base64.src = blobUrl;
+                    blob_input.value = blobUrl + " " + blob_input.value;
+                    console.log(blobUrl);
+                  }, "image/png", 1); 
+
+            }
+            image.src = imgUrl;
+          }
+
+
+          //Form validation
+          (() => {
+            'use strict'
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            const forms = document.querySelectorAll('.needs-validation')
+            // Loop over them and prevent submission
+            Array.from(forms).forEach(form => {
+              form.addEventListener('submit', event => {
+            
+                if (!form.checkValidity()) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+              }, false)
+            })
+            })()
+    
+    //Title/Description limit
+    function titleLimit()
+    {
+        var upper_limit = 200, lower_limit = 10;
+        var chars = document.getElementById("title").value;
+        var titleWordCount = document.getElementById("title-limit");
+        titleWordCount.innerHTML = chars.length + " / " + upper_limit;
+
+        if(chars.length > upper_limit || chars.length < lower_limit)
+        {
+            titleWordCount.style.color = "red";
+        }
+        else
+        {
+            titleWordCount.style.color = "green";
+        }
+    }
+
+    /*MAP & LOCATION STUFF*/
+    var address = document.getElementById('address');
+    var current_location = document.getElementById('current-location');
+    var lat_display = document.getElementById('lat');
+    var lon_display = document.getElementById('lon');
+    var coordinates = document.getElementById('coordinates');
+
+    var greenIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+     //Initilize OSM
+     var map = L.map('map').setView([0, 0], 2);
+     var marker;
+     L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors', noWrap:true
+     }).addTo(map);
+     //Search
+     L.Control.geocoder().addTo(map);
+
+    //Get current location
+    function getLocation()
+    {
+        //Check if location available
+        if(!navigator.geolocation){
+            throw new Error("No geolocation");
+        }
+        function success(pos){
+            var current_lat = pos.coords.latitude;
+            var current_lon = pos.coords.longitude;
+            console.log(current_lat, current_lon);
+            putMarkerViewCentre(current_lat, current_lon, 17);
+            writeAddress(current_lat, current_lon);
+        }
+        function error(){
+            alert("No location service");
+        }
+        const options = {timeout:5000}
+        navigator.geolocation.watchPosition(success, error, options);
+    }
+
+    function putMarkerViewCentre(lat, lon, zoom=null){
+        if(marker){
+            map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lon], {icon: greenIcon}).addTo(map);
+        if(zoom){
+            map.flyTo([lat, lon], zoom);
+        }
+        else{
+            map.setView([lat, lon]);
+        }
+    }
+
+    function onMapClick(e) {
+        var lat = e.latlng.lat;
+        var lon = e.latlng.lng;
+        console.log(lat, lon);
+        putMarkerViewCentre(lat, lon);
+        writeAddress(lat, lon);
+    }
+    //Writes address and plus code info 
+    function writeAddress(lat, lon){
+        /*Nominatim Reverse geocoding
+        $.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=en`, function(data){
+            console.log(data.address);
+            
+        });
+        */
+
+        lat_display.innerHTML = '<i class="fa-solid fa-left-right"></i>&nbsp;&nbsp;' + String(lat).slice(0,8);
+        lon_display.innerHTML = '<i class="fa-solid fa-up-down"></i>&nbsp;&nbsp;' + String(lon).slice(0,8);
+        coordinates.value = lat + " " + lon;
+        
+
+        //Geoapify reverse geocoding
+        if(lon >= -180 && lon <= 180)
+            {
+            fetch("https://api.geoapify.com/v1/geocode/reverse?lat=" + lat + "&lon=" + lon + "&apiKey=b96632d077f245a8809e094114682dfd")
+            .then(response => response.json())
+            .then(result => {
+                console.log(result.features.length);
+            if (result.features.length) {
+                address.innerHTML = '<i class="fa-solid fa-location-dot fa-lg"></i>&nbsp;&nbsp; ' + result.features[0].properties.formatted;
+            } else {
+                address.innerHTML = '<i class="fa-solid fa-location-dot fa-lg"></i>&nbsp;&nbsp; No Address';
+                console.log("No address found");
+            }
+            });
+        }
+    }
+    
+    
+    map.on('click', onMapClick);
+
+
+</script>
+
+    {% endblock %}
+</html>
