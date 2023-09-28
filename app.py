@@ -22,19 +22,19 @@ def feed():
 def about():
     return render_template('about.html', param = "HEllo")
 
-@app.route('/feed', methods=['POST', 'GET'])
+@app.route('/login', methods=['POST', 'GET'])
 def feed():
     return render_template('login.html')
 
-@app.route('/feed', methods=['POST', 'GET'])
+@app.route('/register', methods=['POST', 'GET'])
 def feed():
     return render_template('register.html')
 
-@app.route('/feed', methods=['POST', 'GET'])
+@app.route('/resetpassword', methods=['POST', 'GET'])
 def feed():
     return render_template('reset.html')
 
-@app.route('/feed', methods=['POST', 'GET'])
+@app.route('/forgotpassword', methods=['POST', 'GET'])
 def feed():
     return render_template('forgot.html')
 
