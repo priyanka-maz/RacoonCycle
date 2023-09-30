@@ -1,4 +1,3 @@
 venv/
 static/post_images/
 __pycache__/
-static/post_images/*
