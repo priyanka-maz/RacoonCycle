@@ -4,11 +4,8 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<meta name="author" content="FF06B5">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<meta name="description" content="Magenta">
 	<title>Login Page</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 	integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
 	crossorigin=""/>
@@ -32,11 +29,11 @@
 						<img src="/static/ananees800.png" alt="logo" width="100">
 					</div>
 						<div class="login-card p-5">
-							<h1 class="fs-4 card-title fw-bold mb-4">Register</h1>
-							<form method="POST" class="needs-validation login-form" novalidate="" autocomplete="off">
+							<h1 class="fs-4 card-title fw-bold mb-4" id="heading">Register</h1>
+							<form class="needs-validation login-form" novalidate="" autocomplete="off">
 								<div class="mb-3">
 									<label class="mb-2 text-muted" for="name">Name</label>
-									<input id="name" type="text" class="form-control" name="name" value="" required autofocus>
+									<input id="name" type="text" class="form-control" name="name" required autofocus>
 									<div class="invalid-feedback">
 										Name is required	
 									</div>
@@ -44,9 +41,12 @@
 
 								<div class="mb-3">
 									<label class="mb-2 text-muted" for="email">E-Mail Address</label>
-									<input id="email" type="email" class="form-control" name="email" value="" required>
+									<input id="email" type="email" class="form-control" name="email" required>
 									<div class="invalid-feedback">
 										Email is invalid
+									</div>
+									<div id="email-taken" class="mt-1 text-danger text">
+										Email already exists
 									</div>
 								</div>
 
@@ -89,7 +89,7 @@
 
 								
 								<div class="w-100 text-center pt-5 px-5">
-									<button type="submit" class="submit">
+									<button class="submit" id="submit">
 										Register	
 									</button>
 								</div>
@@ -110,6 +110,72 @@
 
 </body>
 <script>
+	var heading = document.getElementById("heading");
+	var name = document.getElementsByName('name')[0];
+	var email = document.getElementsByName('email')[0];
+	var coordinates = document.getElementsByName('coordinates')[0];
+	var password = document.getElementsByName('password')[0];
+	var email_taken = document.getElementById('email-taken');
+	email.addEventListener('change', () => {
+		email_taken.style.display = 'none';
+	});
+	 //Form validation
+	 (() => {
+		'use strict'
+		// Fetch all the forms we want to apply custom Bootstrap validation styles to
+		const forms = document.querySelectorAll('.needs-validation')
+		// Loop over them and prevent submission
+		Array.from(forms).forEach(form => {
+		  form.addEventListener('submit', event => {
+		
+			if (!form.checkValidity()) {
+			  event.preventDefault()
+			  event.stopPropagation()
+			}
+			else {
+			event.preventDefault()
+			event.stopPropagation()		
+			const xhr = new XMLHttpRequest();
+			xhr.open("POST", "register");
+			xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+			const json = JSON.stringify({
+				name :name.value,
+				email :email.value,
+				password :password.value,
+				coordinates:coordinates.value
+			});
+			xhr.onload = () => {
+				if (xhr.readyState == 4 && xhr.status == 200) {
+					status = xhr.responseText;
+					console.log(xhr.responseText);
+					if(status ==="true")
+					{
+						email_taken.style.display = "block";
+						heading.scrollIntoView();
+					}
+					else{
+						location.assign('/login');
+					}
+
+				} else {
+				  console.log(`Error: ${xhr.status}`);
+				}
+			  };
+			  xhr.send(json);
+
+
+			}
+			form.classList.add('was-validated')
+		  }, false)
+		})
+		})()
+
+		document.getElementById('submit').addEventListener('click', event => {
+			
+			
+		})
+
+
 	 /*MAP & LOCATION STUFF*/
 	 var address = document.getElementById('address');
 	 var current_location = document.getElementById('current-location');

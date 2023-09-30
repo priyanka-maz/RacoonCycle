@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 from flask_cors import CORS
 import base64
 import uuid
@@ -60,9 +60,18 @@ def login():
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if (request.method == 'POST'):
-        req = request.form
+        req = request.get_json()
         print(req)
-        return redirect('/register')
+        #put in db_access#
+        if(req['email'] == 'anindyakbiswas5@gmail.com'):
+            #already exists
+            print("Already exists")
+            return "true"
+        else:
+            #make a db entry
+            print("New email address")
+            return "false"
+
     return render_template('register.html')
 
 @app.route('/resetpassword', methods=['POST', 'GET'])

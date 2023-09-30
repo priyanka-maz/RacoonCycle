@@ -355,6 +355,11 @@
     color:red;
 }
 
+#email-taken{
+    font-size: 14px;
+    display: none;
+}
+
 .submit{
     border: 0px;
     padding: 18px 20px;
