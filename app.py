@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, render_template, request, redirect, jsonify, make_response
 from flask_cors import CORS
 import base64
 import uuid
+import bcrypt
 
 from db_access import *
 
@@ -55,6 +56,27 @@ def about():
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+    if (request.method == 'POST'):
+        req = request.form
+        print(req)
+
+        user_collection = fetchUserByEmail(req['email'])
+
+        if user_collection is not None:
+            print(user_collection)
+            entered_password = req['password'].encode('utf-8')
+
+            if bcrypt.checkpw(entered_password,  user_collection['password']):
+                print("Password is correct!")
+                response = make_response("Login Successful")
+                response.set_cookie('user_id', str(user_collection['_id']))
+                return response
+            
+            else:
+                print("Password is incorrect.")
+        else:
+            print("No user with such email")
+        
     return render_template('login.html')
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -70,8 +92,26 @@ def register():
         else:
             #make a db entry
             print("New email address")
+            
+            password = req['password'].encode('utf-8')
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw(password, salt)
+
+            dict = {
+                'name': req['name'],
+                'coordinates': req['coordinates'],
+                'email': req['email'],
+                'password': hashed_password
+            }
+            print(dict)
+            # if registerDb(dict) is not None:
+            #     return redirect('/login')
+            # else:
+            #     print("Email exists")
+            
             return "false"
 
+        
     return render_template('register.html')
 
 @app.route('/resetpassword', methods=['POST', 'GET'])
