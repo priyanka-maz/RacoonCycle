@@ -1,3 +1,5 @@
+{% extends "layout.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,20 +9,31 @@
 	<meta name="description" content="Magenta">
 	<title>Login Page</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+	integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+	crossorigin=""/>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+	 <!-- Make sure you put this AFTER Leaflet's CSS -->
+   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+   crossorigin=""></script>
+   
+   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
 </head>
 
 <body>
 	<section class="h-100">
 		<div class="container h-100">
 			<div class="row justify-content-sm-center h-100">
-				<div class="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
+				<div class="col-xxl-8">
 					<div class="text-center my-5">
 						<img src="/static/ananees800.png" alt="logo" width="100">
 					</div>
-					<div class="card shadow-lg">
-						<div class="card-body p-5">
+						<div class="login-card p-5">
 							<h1 class="fs-4 card-title fw-bold mb-4">Register</h1>
-							<form method="POST" class="needs-validation" novalidate="" autocomplete="off">
+							<form method="POST" class="needs-validation login-form" novalidate="" autocomplete="off">
 								<div class="mb-3">
 									<label class="mb-2 text-muted" for="name">Name</label>
 									<input id="name" type="text" class="form-control" name="name" value="" required autofocus>
@@ -45,23 +58,48 @@
 							    	</div>
 								</div>
 
-								<p class="form-text text-muted mb-3">
-									By registering you agree with our terms and condition.
-								</p>
 
-								<div class="align-items-center d-flex">
-									<button type="submit" class="btn btn-primary ms-auto">
+								<div id="map">
+								</div>
+								<div class="w-100 text-center">
+								<button id="current-location" type = "button" onclick="getLocation()"><i class="fa-solid fa-location-crosshairs fa-lg"></i> &nbsp;&nbsp;Get current location</button>           
+								</div>
+								<!--Hidden input field to keep location coordinates-->
+								<input name="coordinates" type="text" id="coordinates" hidden>
+								<div class="invalid-feedback">
+									Select a location.
+								</div>
+								<br>
+					
+								<div class="location-data">
+									<div class="row text-center">
+										<div class="col d-flex justify-content-center align-items-center">
+											<div type = "text" id="address"><i class="fa-solid fa-location-dot"></i>&nbsp;&nbsp;&nbsp;Address of the location&nbsp;&nbsp;</div>
+										</div>
+											<div class="col-md-3 d-flex justify-content-center">
+											<div type = "text" id="lat"><i class="fa-solid fa-left-right"></i>&nbsp;&nbsp;&nbsp;Latitude</div>
+										</div>
+										<div class="col-md-3 d-flex justify-content-center">
+											<div type = "text" id="lon"><i class="fa-solid fa-up-down"></i>&nbsp;&nbsp;&nbsp;Longitude</div>
+										</div>
+									</div>
+								</div> 
+					
+					
+
+								
+								<div class="w-100 text-center pt-5 px-5">
+									<button type="submit" class="submit">
 										Register	
 									</button>
 								</div>
 							</form>
 						</div>
-						<div class="card-footer py-3 border-0">
+						<div class="card-footer py-3 border-0 rounded-5 mt-3">
 							<div class="text-center">
-								Already have an account? <a href="index.html" class="text-dark">Login</a>
+								Already have an account? <a href="/login" class="text-dark">Login</a>
 							</div>
 						</div>
-					</div>
 					<div class="text-center mt-5 text-muted">
 						Copyright &copy; 2023 &mdash; RaccoonCycle 
 					</div>
@@ -70,6 +108,108 @@
 		</div>
 	</section>
 
-	<script src="js/login.js"></script>
 </body>
+<script>
+	 /*MAP & LOCATION STUFF*/
+	 var address = document.getElementById('address');
+	 var current_location = document.getElementById('current-location');
+	 var lat_display = document.getElementById('lat');
+	 var lon_display = document.getElementById('lon');
+	 var coordinates = document.getElementById('coordinates');
+ 
+	 var greenIcon = new L.Icon({
+		 iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+		 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+		 iconSize: [25, 41],
+		 iconAnchor: [12, 41],
+		 popupAnchor: [1, -34],
+		 shadowSize: [41, 41]
+	   });
+ 
+	  //Initilize OSM
+	  var map = L.map('map').setView([0, 0], 2);
+	  var marker;
+	  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+	  attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors', noWrap:true
+	  }).addTo(map);
+	  //Search
+	  L.Control.geocoder().addTo(map);
+ 
+	 //Get current location
+	 function getLocation()
+	 {
+		 //Check if location available
+		 if(!navigator.geolocation){
+			 throw new Error("No geolocation");
+		 }
+		 function success(pos){
+			 var current_lat = pos.coords.latitude;
+			 var current_lon = pos.coords.longitude;
+			 console.log(current_lat, current_lon);
+			 putMarkerViewCentre(current_lat, current_lon, 17);
+			 writeAddress(current_lat, current_lon);
+		 }
+		 function error(){
+			 alert("No location service");
+		 }
+		 const options = {timeout:5000}
+		 navigator.geolocation.watchPosition(success, error, options);
+	 }
+ 
+	 function putMarkerViewCentre(lat, lon, zoom=null){
+		 if(marker){
+			 map.removeLayer(marker);
+		 }
+		 marker = L.marker([lat, lon], {icon: greenIcon}).addTo(map);
+		 if(zoom){
+			 map.flyTo([lat, lon], zoom);
+		 }
+		 else{
+			 map.setView([lat, lon]);
+		 }
+	 }
+ 
+	 function onMapClick(e) {
+		 var lat = e.latlng.lat;
+		 var lon = e.latlng.lng;
+		 console.log(lat, lon);
+		 putMarkerViewCentre(lat, lon);
+		 writeAddress(lat, lon);
+	 }
+	 //Writes address and plus code info 
+	 function writeAddress(lat, lon){
+		 /*Nominatim Reverse geocoding
+		 $.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=en`, function(data){
+			 console.log(data.address);
+			 
+		 });
+		 */
+ 
+		 lat_display.innerHTML = '<i class="fa-solid fa-left-right"></i>&nbsp;&nbsp;' + String(lat).slice(0,8);
+		 lon_display.innerHTML = '<i class="fa-solid fa-up-down"></i>&nbsp;&nbsp;' + String(lon).slice(0,8);
+		 coordinates.value = String(lat).slice(0,8) + " " + String(lon).slice(0,8);
+		 
+ 
+		 //Geoapify reverse geocoding
+		 if(lon >= -180 && lon <= 180)
+			 {
+			 fetch("https://api.geoapify.com/v1/geocode/reverse?lat=" + lat + "&lon=" + lon + "&apiKey=b96632d077f245a8809e094114682dfd")
+			 .then(response => response.json())
+			 .then(result => {
+				 console.log(result.features.length);
+			 if (result.features.length) {
+				 address.innerHTML = '<i class="fa-solid fa-location-dot fa-lg"></i>&nbsp;&nbsp; ' + result.features[0].properties.formatted;
+			 } else {
+				 address.innerHTML = '<i class="fa-solid fa-location-dot fa-lg"></i>&nbsp;&nbsp; No Address';
+				 console.log("No address found");
+			 }
+			 });
+		 }
+	 }
+	 
+	 
+	 map.on('click', onMapClick);
+</script>
+{% endblock %}
+
 </html>

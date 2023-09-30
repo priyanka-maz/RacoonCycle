@@ -7,7 +7,6 @@
     <title>Uplead</title>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-    <script src="/static/bson.js"></script>
     
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -60,7 +59,7 @@
                 <div class="col-sm" style="padding-right: 20px;">
                     <div class="form-floating">
                         <textarea name="desc" type = "text" class = "form-control"  id = "desc"  placeholder="Description of the post..." minlength="10" maxlength="200"  onkeyup="descLimit()" pattern="^[^<>]*$" required></textarea>
-                        <label for="desc" class="col-form-label">Describe the image...</label>
+                        <label for="desc" class="col-form-label text-muted">Describe the image...</label>
                         <div class="invalid-feedback">
                             Description should be atleast 10 characters long.
                         </div>
@@ -152,7 +151,7 @@
             </div> 
 
 
-            <input type="submit" value="Submit" class="btn submit" />
+            <input type="submit" value="Submit" class="btn submit mt-5 mb-4" />
             </div>
         </form>
         <!--Displays 1st image compressed, remove hidden to see. Not important for compression, just for testing-->

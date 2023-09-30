@@ -59,6 +59,10 @@ def login():
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
+    if (request.method == 'POST'):
+        req = request.form
+        print(req)
+        return redirect('/register')
     return render_template('register.html')
 
 @app.route('/resetpassword', methods=['POST', 'GET'])
