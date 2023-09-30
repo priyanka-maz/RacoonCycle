@@ -81,17 +81,14 @@ function hasScrolled() {
     // If scrolled down and past the navbar, add class .nav-up.
     if (st > lastScrollTop && st > navbarHeight){
         // Scroll Down
-        console.log("Scroll Down");
         $('nav').removeClass('nav-down').addClass('nav-up');
     } else {
         // Scroll Up
-        console.log("Scroll Up");
             $('nav').removeClass('nav-up').addClass('nav-down');
         
     }
   
     lastScrollTop = st;
-    console.log(lastScrollTop);
 
 }
     </script>

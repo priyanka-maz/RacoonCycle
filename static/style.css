@@ -225,15 +225,65 @@
     transition: 0.3s;
 }
 
-#title{
+#desc{
     border: 0px;
     background-color: rgb(255, 255, 255);
     box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.2);
     height: 100px;
 }
-#title:focus{
+#desc:focus{
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.1);
 
+}
+
+.form-select{
+    margin-left: 25px;
+    border-radius: 20px;
+    text-align: center;
+    padding: 15px 60px 15px 40px;
+    color: rgba(0, 0, 0, 0.8);
+    width: fit-content;
+    background-color: rgb(241, 255, 240);
+    box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+    border: 0px;
+
+}
+.form-select:focus{
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.1);
+
+}
+
+.form-select option{
+    background-color: white;
+    margin: -10px;
+}
+
+
+
+.waste-category-radio input{
+    display:none;
+    width: 1px;
+    
+}
+.waste-category-radio{
+    margin: 5px 20px 5px 0px;
+
+}
+.waste-category-radio div{
+    padding-left: 0px;
+    margin: 5px 5px;
+}
+.waste-category-radio label{
+    padding: 5px 25px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    color:rgba(0, 0, 0, 0.8);
+}
+
+.waste-category-radio input[type="radio"]:checked + label{
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    transition: 0.3s;
 }
 
 #map{
@@ -363,12 +413,43 @@
     font-weight: bold;
 }
 
-.post .waste-genre{
-    margin: 1px 10px 10px 10px;
+.post .stats{
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+.post .stats span{
+    margin: 5px;
     border-radius: 30px;
-    padding: 5px 15px;
-    background-color: greenyellow;
-    width: fit-content;
-    font-size: 14px;
+    padding: 8px 15px 10px 15px;
     color:rgba(0, 0, 0, 0.7);
+    width: fit-content;
+}
+
+.post .waste-genre{
+    background-color: greenyellow;
+    font-size: 16px;
+}
+
+.post .distance{
+    background-color: rgb(47, 151, 255);
+    font-size: 16px;
+}
+
+.status{
+    border-radius: 30px;
+    padding: 10px 30px;
+    color:rgb(14, 215, 0);
+    width: fit-content;
+    margin: 10px 5px;
+    border: 2px solid rgb(14, 215, 0);
+    font-size: 20px;
+    transition: 0.3s;
+
+}
+
+.status:hover{
+    color:white;
+    background-color: rgb(14, 215, 0);
+    transition: 0.3s;
 }
