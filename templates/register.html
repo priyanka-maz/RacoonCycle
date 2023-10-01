@@ -111,8 +111,8 @@
 </body>
 <script>
 	var heading = document.getElementById("heading");
-	var name = document.getElementsByName('name')[0];
 	var email = document.getElementsByName('email')[0];
+	var nam = document.getElementsByName('name')[0];
 	var coordinates = document.getElementsByName('coordinates')[0];
 	var password = document.getElementsByName('password')[0];
 	var email_taken = document.getElementById('email-taken');
@@ -139,7 +139,7 @@
 			xhr.open("POST", "register");
 			xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
 			const json = JSON.stringify({
-				name :name.value,
+				name :nam.value,
 				email :email.value,
 				password :password.value,
 				coordinates:coordinates.value

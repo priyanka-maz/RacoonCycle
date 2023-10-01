@@ -26,67 +26,88 @@
 </head>
     <body>
         <div class="header-spacing"></div>
-
-        <div class="post">
-            <a href="#">@bigRacoon</a>
-            <div class="desc">The shit I found in Calcutta University</div>
-            <div class="stats">
-                <span class="waste-genre">#waste_genre</span>
-                <span class="distance"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
-            </div>
-            <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
-                <div class="carousel-inner">
-                  <div class="carousel-item active">
-                    <img src="/static/images/icecream.jpg" class="d-block w-100">
-                  </div>
-                  <div class="carousel-item">
-                    <img src="/static/ananees800.png" class="d-block w-100">
-                  </div>
-               
+        
+            <div class="post post-narrow">
+                <a href="#post">
+                <div class="mx-2">@bigRacoon</div>
+                <div class="desc">This is a fake post. The next ones are from db</div>
+                <div class="stats">
+                    <span class="waste-genre">#waste_genre</span>
+                    <span class="distance" data-lat="22.12344" data-lon="88.53214"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
                 </div>
-                <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
-                    <i class="fa-solid fa-chevron-left fa-xl"></i>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel1" data-bs-slide="next">
-                    <i class="fa-solid fa-chevron-right fa-xl"></i>             
-                    <span class="visually-hidden">Next</span>
-                </button>
-              </div>
-              <div class="status"><i class="fa-solid fa-check"></i></div>
-        </div>
-
-        <div class="post">
-            <div id="carousel2" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
-                <div class="carousel-inner">
+                <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner">
                     <div class="carousel-item active">
-                        <img src="/static/images/3809166.jpg" class="d-block w-100">
-                      </div>
-                 
-                  <div class="carousel-item">
-                    <img src="/static/images/androidwp.jpg" class="d-block w-100">
-                  </div>
+                        <img src="/static/images/icecream.jpg" class="d-block w-100">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="/static/ananees800.png" class="d-block w-100">
+                    </div>
+                
+                    </div>
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left fa-xl"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel1" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div class="status"><i class="fa-solid fa-check"></i></div>
+            </a>
+
+            </div>
+
+       
+
+<!--FROM DB-->
+
+        {% for post in posts %}
+        <div class="post post-narrow">
+            <a href="/post?id={{post['_id']}}">
+                <div class="mx-2">@bigRacoon</div>
+                <div class="desc">{{ post['description'] }}</div>
+                <div class="stats">
+                    <span class="waste-genre">#{{ post['waste_type'] }}</span>
+                    <span class="distance" data-lat="{{ post['coordinates'].split(' ')[0] }}" data-lon="{{ post['coordinates'].split(' ')[1] }}"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                </div>
+                <div id="carouselp{{loop.index}}" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner">
+                    
+                    {% for image in post['image'] %}
+                    <div class="carousel-item {{ 'active' if loop.index==1}}">
+                        <img src="/static/post_images/{{image}}.jpg" class="d-block w-100">
+                    </div>
+                    {% endfor %}
+                    </div>
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carouselp{{loop.index}}" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left fa-xl"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carouselp{{loop.index}}" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div class="status"><i class="fa-solid fa-check"></i></div>
+            </a>
+        </div>
+        {% endfor %}
 
                   
                   
                
-                </div>
-                <button href="#carousel2" class="carousel-control-prev" type="button" data-bs-target="#carousel2" data-bs-slide="prev">
-                    <i class="fa-solid fa-chevron-left fa-xl"></i>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button href="#carousel2" class="carousel-control-next" type="button" data-bs-target="#carousel2" data-bs-slide="next">
-                    <i class="fa-solid fa-chevron-right fa-xl"></i>             
-                    <span class="visually-hidden">Next</span>
-                </button>
-              </div>
-        </div>
+                
 
         
     </body>
 
     <script>
         document.addEventListener("DOMContentLoaded", prevNext);
+        //document.addEventListener("DOMContentLoaded", distance, false);
+        $(document).ready(distance);
+
          function prevNext(){
             var carousel_inner = document.getElementsByClassName("carousel-inner");
             var prev = document.getElementsByClassName("carousel-control-prev");
@@ -103,6 +124,39 @@
                 }
             }
         }
+
+        function distance(){
+            var distance_elements = document.getElementsByClassName("distance");
+            var current_lat = 22.66447;
+            var current_lon = 88.43420;
+            for (var i = 0; i < distance_elements.length; i++){
+                var post_lat = distance_elements[i].dataset.lat;
+                var post_lon = distance_elements[i].dataset.lon;
+                var distanceInKm = getDistanceFromLatLonInKm(current_lat, current_lon, post_lat, post_lon);
+                distance_elements[i].innerHTML = '<i class="fa-solid fa-location-dot"></i> &nbsp;' + distanceInKm.toFixed(1) + 'km';
+                console.log(distanceInKm);
+            }
+        }
+
+
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+            var R = 6371; // Radius of the earth in km
+            var dLat = deg2rad(lat2-lat1);  // deg2rad below
+            var dLon = deg2rad(lon2-lon1); 
+            var a = 
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2)
+              ; 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            var d = R * c; // Distance in km
+            return d;
+          }
+          
+          function deg2rad(deg) {
+            return deg * (Math.PI/180)
+          }
+
     </script>
 
 

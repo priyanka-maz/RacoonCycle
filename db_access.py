@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 client = MongoClient('localhost', 27017)
 
@@ -6,8 +7,24 @@ def storePost(dict):
     racoon_db = client.racoon_db
     post_collection = racoon_db.post
     post_collection.insert_one(dict)
-    for i in post_collection.find():
-        print(i)
+    # for i in post_collection.find():
+    #     print(i)
+
+def getPost(id=None):
+    racoon_db = client.racoon_db
+    post_collection = racoon_db.post
+    ## For feed page
+    if(id is None):
+        posts = []
+        for i in post_collection.find().sort("_id", -1).limit(10):
+            posts.append(i)
+        return posts
+    ## For post page
+    else:
+        print(id)
+        objInstance = ObjectId(id)
+        post = post_collection.find_one({"_id": objInstance})
+        return post
 
 def registerDb(dict):
     racoon_db = client.racoon_db

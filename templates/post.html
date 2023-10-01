@@ -4,7 +4,7 @@
 <head>
     <link rel="icon" href="static/ananees800.png">
 
-    <title>Feed</title>
+    <title>Post</title>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     
@@ -27,19 +27,20 @@
     <body>
         <div class="header-spacing"></div>
 
-        <div class="post">
+        <div class="post post-wide">
             <a href="#">@bigRacoon</a>
-            <div class="desc">The shit I found in Calcutta University</div>
-            <div class="waste-genre">#waste_genre</div>
+            <div class="desc">{{ post['description'] }}</div>
+                <div class="stats">
+                    <span class="waste-genre">#{{ post['waste_type'] }}</span>
+                    <span class="distance"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                </div>
             <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
                 <div class="carousel-inner">
-                  <div class="carousel-item active">
-                    <img src="/static/images/icecream.jpg" class="d-block w-100">
-                  </div>
-                  <div class="carousel-item">
-                    <img src="/static/ananees800.png" class="d-block w-100">
-                  </div>
-               
+                    {% for image in post['image'] %}
+                    <div class="carousel-item {{ 'active' if loop.index==1}}">
+                        <img src="/static/post_images/{{image}}.jpg" class="d-block w-100">
+                    </div>
+                    {% endfor %}
                 </div>
                 <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
                     <i class="fa-solid fa-chevron-left fa-xl"></i>
@@ -55,6 +56,25 @@
 
 
     </body>
-    {% endblock %}
+    <script>
+        document.addEventListener("DOMContentLoaded", prevNext);
+         function prevNext(){
+            var carousel_inner = document.getElementsByClassName("carousel-inner");
+            var prev = document.getElementsByClassName("carousel-control-prev");
+            var next = document.getElementsByClassName("carousel-control-next");
 
+            for (var i = 0; i < carousel_inner.length; i++)
+            {
+                console.log(carousel_inner[i].childElementCount);
+                if(carousel_inner[i].childElementCount > 1)
+                {
+                    console.log(carousel_inner[i].nextElementSibling.style.display = "block");
+                    prev[i].style.display = "block";
+                    next[i].style.display = "block";
+                }
+            }
+        }
+    </script>
+
+    {% endblock %}
 </html>

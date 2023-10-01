@@ -44,14 +44,22 @@ def detect():
 
 @app.route('/feed', methods=['POST', 'GET'])
 def feed():
-    return render_template('feed.html')
+    posts = getPost()
+    for post in posts:
+        print(post)
+        id = post['image']
+    return render_template('feed.html', posts = posts)
 
 @app.route('/post', methods=['POST', 'GET'])
 def post():
-    return render_template('post.html')
+    post_id = request.args.get('id')
+    post = getPost(post_id)
+    print("From /about -> ", post)
+    return render_template('post.html', post=post)
 
 @app.route('/about', methods=['POST', 'GET'])
 def about():
+    
     return render_template('about.html', param = "HEllo")
 
 @app.route('/login', methods=['POST', 'GET'])
