@@ -33,7 +33,7 @@
 							<form class="needs-validation login-form" novalidate="" autocomplete="off">
 								<div class="mb-3">
 									<label class="mb-2 text-muted" for="name">Name</label>
-									<input id="name" type="text" class="form-control" pattern="[A-Za-z_]" name="name" required autofocus>
+									<input id="name" type="text" class="form-control" pattern="^[A-Za-z\s'-]+$" name="name" required autofocus>
 									<div class="invalid-feedback">
 										Name is required	
 									</div>
