@@ -32,6 +32,7 @@ def registerDb(dict):
 
     query = {"email": dict['email']}
     user_document = user_collection.find_one(query)
+    print("Doc: ", user_document)
     if user_document:
         #email already exists
         return None
@@ -39,6 +40,7 @@ def registerDb(dict):
         user_collection.insert_one(dict)
         for i in user_collection.find():
             print(i)
+        return "yes new user"
 
 def fetchUserByEmail(email):
     racoon_db = client.racoon_db
