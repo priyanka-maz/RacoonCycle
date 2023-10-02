@@ -3,6 +3,7 @@ from flask_cors import CORS
 import base64
 import uuid
 import bcrypt
+import os
 
 from db_access import *
 
@@ -27,7 +28,14 @@ def detect():
             data = base64.b64decode(imageData)
             uniqueName = generate_unique_filename()
             imageName.append(uniqueName)
-            with open("static/post_images/" + uniqueName + ".jpg", 'wb') as f:
+
+            script_path = os.path.abspath(__file__)
+
+            app_directory = os.path.dirname(script_path)
+
+            static_directory = os.path.join(app_directory, "static/post_images/" + uniqueName + ".jpg")
+
+            with open(static_directory, 'wb') as f:
               f.write(data)
         
         dict = {
