@@ -3,6 +3,7 @@ from flask_cors import CORS
 import base64
 import uuid
 import bcrypt
+import os
 
 from db_access import *
 
@@ -27,7 +28,14 @@ def detect():
             data = base64.b64decode(imageData)
             uniqueName = generate_unique_filename()
             imageName.append(uniqueName)
-            with open("static/post_images/" + uniqueName + ".jpg", 'wb') as f:
+
+            script_path = os.path.abspath(__file__)
+
+            app_directory = os.path.dirname(script_path)
+
+            static_directory = os.path.join(app_directory, "static/post_images/" + uniqueName + ".jpg")
+
+            with open(static_directory, 'wb') as f:
               f.write(data)
         
         dict = {
@@ -79,6 +87,7 @@ def login():
                 response = make_response("Login Successful")
                 response.set_cookie('user_id', str(user_collection['_id']))
                 return response
+                # profile redirect
             
             else:
                 print("Password is incorrect.")
@@ -92,32 +101,24 @@ def register():
     if (request.method == 'POST'):
         req = request.get_json()
         print(req)
-        #put in db_access#
-        if(req['email'] == 'anindyakbiswas5@gmail.com'):
-            #already exists
-            print("Already exists")
-            return "true"
-        else:
-            #make a db entry
-            print("New email address")
-            
-            password = req['password'].encode('utf-8')
-            salt = bcrypt.gensalt()
-            hashed_password = bcrypt.hashpw(password, salt)
+        
+        # if cookie then profile
+        password = req['password'].encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password, salt)
 
-            dict = {
-                'name': req['name'],
-                'coordinates': req['coordinates'],
-                'email': req['email'],
-                'password': hashed_password
-            }
-            print(dict)
-            # if registerDb(dict) is not None:
-            #     return redirect('/login')
-            # else:
-            #     print("Email exists")
-            
+        dict = {
+            'name': req['name'],
+            'coordinates': req['coordinates'],
+            'email': req['email'],
+            'password': hashed_password
+        }
+        if registerDb(dict) is not None:
+            print("Email doesnt exist")
             return "false"
+        else: #None
+            print("Email exists")
+            return "true"
 
         
     return render_template('register.html')
