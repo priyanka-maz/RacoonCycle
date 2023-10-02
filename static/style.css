@@ -112,6 +112,10 @@
     transform: translateY(-75px);
   }
 
+a{
+    text-decoration: none;
+}
+
 #header{
     position: fixed;
     left:0px;
@@ -429,7 +433,7 @@
 
 }
 
-.post a{
+.post .profile-name{
     text-decoration: none;
     color:rgba(0, 0, 0, 0.2);
     font-size: 15px;
@@ -442,7 +446,6 @@
     font-weight: bold;
     color:rgba(0, 0, 0, 0.65);
 }
-
 
 
 .post .stats{
@@ -459,14 +462,41 @@
     width: fit-content;
 }
 
+
 .post .waste-genre{
     background-color: greenyellow;
     font-size: 16px;
+    padding: 8px 20px 10px 20px;
+
 }
 
 .post .distance{
     background-color: rgb(47, 151, 255);
     font-size: 16px;
+    padding: 10px 20px 8px 20px;
+}
+
+.post-address{
+    padding: 13px 20px 13px 20px;
+    margin-bottom: 20px;
+    border-radius: 30px;
+    color:rgba(0, 0, 0, 0.7);
+    width: fit-content;
+    background-color: rgb(255, 239, 239);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.post-address:hover{
+    color:rgba(0, 0, 0, 0.6);
+    box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.post-address .fa-location-dot{
+    color: red;
+    font-size: 17px;
 }
 
 .status{
