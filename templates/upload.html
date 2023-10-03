@@ -4,7 +4,7 @@
 <head>
     <link rel="icon" href="static/ananees800.png">
 
-    <title>Uplead</title>
+    <title>Upload</title>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     
@@ -58,7 +58,7 @@
                 <div style="width: 25px;"></div>
                 <div class="col-sm" style="padding-right: 20px;">
                     <div class="form-floating">
-                        <textarea name="desc" type = "text" class = "form-control"  id = "desc"  placeholder="Description of the post..." minlength="10" maxlength="200"  onkeyup="descLimit()" pattern="^[^<>]*$" required></textarea>
+                        <textarea name="desc" type = "text" class = "form-control"  id = "desc"  placeholder="Description of the post..." minlength="10" maxlength="300"  onkeyup="descLimit()" pattern="^[^<>]*$" required></textarea>
                         <label for="desc" class="col-form-label text-muted">Describe the image...</label>
                         <div class="invalid-feedback">
                             Description should be atleast 10 characters long.
@@ -114,15 +114,13 @@
                     <input class="form-check-input" type="radio" name="waste-category" id="shoes" value="shoes">
                     <label class="form-check-label" for="shoes">Shoes</label>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="waste-category" id="others" value="others">
-                    <label class="form-check-label" for="others">Others</label>
-                </div>
+                
               </div>
             
 
             <!--Hidden input field to store blob of images-->
             <input name="blob" type = "text" class = "form-control"  id = "blob" hidden>
+            <input name="user_id" type = "text" class = "form-control"  id = "user_id" hidden>
 
             <br>
             <div id="map">
@@ -159,6 +157,33 @@
 
     </body>
     <script>
+
+
+        document.addEventListener("DOMContentLoaded", function(){
+            if(getCookie('user_id') == '')
+            {
+                location.assign('/login');
+            }
+        });
+
+        function getCookie(cname) {
+            let name = cname + "=";
+            let ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+              }
+              if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+              }
+            }
+            return "";
+          }
+
+
+
+
         //Load files
         var loadFile = function(event) {
             
@@ -168,18 +193,18 @@
                 upload_container.innerHTML = ""
                 blob_input.value = '';
             }
-            else{
-                console.log("fake");
-            }
 
             //Enable arrows if multiple images
            if(event.target.files.length > 1){
             document.getElementById('prev').style.display='block';
             document.getElementById('next').style.display='block';
            }
-           var tallest = 0;
+
+           if(event.target.files.length > 4){
+            alert("Maximum 4 images allowed!");
+           }
             
-            for(var i=0; i<event.target.files.length; i++) {
+            for(var i=0; i < 4; i++) {
                 carosel_item = document.createElement("div");
                 carosel_item.classList.add("carousel-item");
                 if(i==0){
@@ -197,9 +222,9 @@
         };
         //Compression function
         function convertImageToBase64(imgUrl) {
-            //width or height, whichever is higher will be made 300px
-            var MAX_WIDTH = 300;
-            var MAX_HEIGHT = 300;
+            //width or height, whichever is higher will be made 500px
+            var MAX_WIDTH = 500;
+            var MAX_HEIGHT = 500;
             const image = new Image();
             var base64 = document.getElementById("base64")
             image.crossOrigin='anonymous';
@@ -248,15 +273,25 @@
           (() => {
             'use strict'
             // Fetch all the forms we want to apply custom Bootstrap validation styles to
-            const forms = document.querySelectorAll('.needs-validation')
+            const forms = document.querySelectorAll('.needs-validation');
+            var user_id = document.getElementById('user_id');
             // Loop over them and prevent submission
             Array.from(forms).forEach(form => {
               form.addEventListener('submit', event => {
+                if(getCookie('user_id')!='')
+                {
+                    user_id.value = getCookie('user_id');
+                    console.log(user_id.value);
+                }
+                else{
+                    location.assign('/login');
+                }
             
                 if (!form.checkValidity()) {
                   event.preventDefault()
                   event.stopPropagation()
                 }
+                
                 form.classList.add('was-validated')
               }, false)
             })
@@ -265,7 +300,7 @@
     //Title/Description limit
     function descLimit()
     {
-        var upper_limit = 200, lower_limit = 10;
+        var upper_limit = 300, lower_limit = 10;
         var chars = document.getElementById("desc").value;
         var descWordCount = document.getElementById("desc-limit");
         descWordCount.innerHTML = chars.length + " / " + upper_limit;
@@ -376,8 +411,6 @@
             });
         }
     }
-    
-    
     map.on('click', onMapClick);
 
 

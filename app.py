@@ -19,34 +19,35 @@ def generate_unique_filename():
 def detect():
     if (request.method == 'POST'):
         req = request.form
-        print(request.files)
-        imagesData = req['blob'].split(' ')
-        imagesData.pop()
-        imageName = []
+        if(req['user_id'] != ''):
+            imagesData = req['blob'].split(' ')
+            imagesData.pop()
+            imageName = []
 
-        for imageData in imagesData:
-            data = base64.b64decode(imageData)
-            uniqueName = generate_unique_filename()
-            imageName.append(uniqueName)
+            for imageData in imagesData:
+                data = base64.b64decode(imageData)
+                uniqueName = generate_unique_filename()
+                imageName.append(uniqueName)
 
-            script_path = os.path.abspath(__file__)
+                script_path = os.path.abspath(__file__)
 
-            app_directory = os.path.dirname(script_path)
+                app_directory = os.path.dirname(script_path)
 
-            static_directory = os.path.join(app_directory, "static/post_images/" + uniqueName + ".jpg")
+                static_directory = os.path.join(app_directory, "static/post_images/" + uniqueName + ".jpg")
 
-            with open(static_directory, 'wb') as f:
-              f.write(data)
-        
-        dict = {
-            'description': req['desc'],
-            'coordinates': req['coordinates'],
-            'waste_type': req['waste-category'],
-            'image': imageName
-        }
-        print(dict)
-        storePost(dict)
-        return redirect('/upload')
+                with open(static_directory, 'wb') as f:
+                    f.write(data)
+            
+            dict = {
+                'description': req['desc'],
+                'coordinates': req['coordinates'],
+                'waste_type': req['waste-category'] if req.get('waste-category') is not None else '',
+                'image': imageName,
+                'user_id': req['user_id']
+            }
+            print(dict)
+            storePost(dict)
+            return redirect('/upload')
 
     return render_template('upload.html')
 

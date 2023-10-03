@@ -4,11 +4,22 @@ from bson.objectid import ObjectId
 client = MongoClient('localhost', 27017)
 
 def storePost(dict):
+    
     racoon_db = client.racoon_db
+    user_collection = racoon_db.user
     post_collection = racoon_db.post
-    post_collection.insert_one(dict)
-    # for i in post_collection.find():
-    #     print(i)
+    #id of user
+    id = ObjectId(dict['user_id'])
+    
+    #add username of the poster for easier username access
+    dict['user_name'] =  user_collection.find_one({'_id': id})['name']
+    
+    #insert post info into post_collection
+    post = post_collection.insert_one(dict)
+    
+    #update user_collection with the new post
+    user_collection.update_one({'_id': id}, {'$push':{'posts': post.inserted_id}})
+
 
 def getPost(id=None):
     racoon_db = client.racoon_db
@@ -17,6 +28,7 @@ def getPost(id=None):
     if(id is None):
         posts = []
         for i in post_collection.find().sort("_id", -1).limit(10):
+            i['timestamp'] = i['_id'].generation_time
             posts.append(i)
         return posts
     ## For post page
@@ -24,6 +36,7 @@ def getPost(id=None):
         print(id)
         objInstance = ObjectId(id)
         post = post_collection.find_one({"_id": objInstance})
+        post['timestamp'] = post['_id'].generation_time
         return post
 
 def registerDb(dict):

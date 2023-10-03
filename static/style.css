@@ -435,9 +435,11 @@ a{
 
 .post .profile-name{
     text-decoration: none;
-    color:rgba(0, 0, 0, 0.2);
+    color:rgba(0, 0, 0, 0.5);
     font-size: 15px;
-    margin-left: 10px;
+}
+.post .fa-circle{
+    font-size: 5px!important;
 }
 
 .post .desc{
@@ -445,6 +447,8 @@ a{
     font-size: 22px;
     font-weight: bold;
     color:rgba(0, 0, 0, 0.65);
+    line-height:125%;
+    over
 }
 
 
@@ -457,7 +461,7 @@ a{
 .post .stats span{
     margin: 2px;
     border-radius: 30px;
-    padding: 8px 20px 10px 20px;
+    padding: 8px 17px 10px 17px;
     color:rgba(0, 0, 0, 0.7);
     width: fit-content;
 }
@@ -473,7 +477,7 @@ a{
 .post .distance{
     background-color: rgb(47, 151, 255);
     font-size: 16px;
-    padding: 10px 20px 8px 20px;
+    padding: 8px 15px 10px 15px;
 }
 
 .post-address{
@@ -497,6 +501,13 @@ a{
 .post-address .fa-location-dot{
     color: red;
     font-size: 17px;
+}
+
+.post .post-time{
+    color: rgba(0, 0, 0, 0.474);
+    font-size: 14px;
+    font-family: 'Product Sans Medium';
+    margin-left: 10px;
 }
 
 .status{

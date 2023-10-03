@@ -66,10 +66,10 @@
         {% for post in posts %}
         <div class="post post-narrow">
             <a href="/post?id={{post['_id']}}">
-                <div href="#" class="profile-name">@bigRacoon</div>
+                <div class="profile-name mx-2 mt-1"><i class="fa-regular fa-user fa-xs"></i> &nbsp;{{ post['user_name'] }}</div>
                 <div class="desc">{{ post['description'] }}</div>
                 <div class="stats">
-                    <span class="waste-genre">#{{ post['waste_type'] }}</span>
+                    <span class="waste-genre {{ 'visually-hidden' if post.get('waste_type') == '' }}">#{{ post['waste_type'] }}</span>
                     <span class="distance" data-lat="{{ post['coordinates'].split(' ')[0] }}" data-lon="{{ post['coordinates'].split(' ')[1] }}"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
                 </div>
                 <div id="carouselp{{loop.index}}" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
@@ -90,11 +90,12 @@
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
-                <div class="status"><i class="fa-solid fa-check"></i></div>
+                <div class="post-time mt-3" data-timestamp="{{ post['timestamp'] }}"></div>
+                <!--<div class="status"><i class="fa-solid fa-check"></i></div>-->
             </a>
         </div>
         {% endfor %}
-
+        <div class="my-5"></div>
                   
                   
                
@@ -104,9 +105,24 @@
     </body>
 
     <script>
-        document.addEventListener("DOMContentLoaded", prevNext);
-        //document.addEventListener("DOMContentLoaded", distance, false);
-        $(document).ready(distance);
+        document.addEventListener("DOMContentLoaded", function(){
+            prevNext();
+            distance();
+            dateTime();
+        });
+
+        function dateTime(){
+            var post_times = document.getElementsByClassName('post-time');
+            const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            const weekday = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+            for (var i = 0; i < post_times.length; i++){
+                var timestamp = post_times[i].dataset.timestamp;
+                dateTime = new Date(timestamp);
+                const time = dateTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                post_times[i].innerHTML = time + '&nbsp; &#8226; &nbsp;'+ weekday[dateTime.getDay()] +', ' + month[dateTime.getMonth()] + ' ' + dateTime.getDate() +' ' + dateTime.getFullYear();
+            }
+        }
 
          function prevNext(){
             var carousel_inner = document.getElementsByClassName("carousel-inner");
