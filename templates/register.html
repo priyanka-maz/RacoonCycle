@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -30,12 +30,12 @@
 					</div>
 						<div class="login-card p-5">
 							<h1 class="fs-4 card-title fw-bold mb-4" id="heading">Register</h1>
-							<form class="needs-validation login-form" novalidate="" autocomplete="off">
+							<form class="needs-validation login-form" novalidate autocomplete="off">
 								<div class="mb-3">
 									<label class="mb-2 text-muted" for="name">Name</label>
-									<input id="name" type="text" class="form-control" pattern="^[A-Za-z\s'-]+$" name="name" required autofocus>
+									<input id="name" type="text" class="form-control" name="name" pattern="^[A-Za-z\s'\-]+$" required>
 									<div class="invalid-feedback">
-										Name is required	
+										Name must hve only alphabets.
 									</div>
 								</div>
 
@@ -52,9 +52,9 @@
 
 								<div class="mb-3">
 									<label class="mb-2 text-muted" for="password">Password</label>
-									<input id="password" type="password" pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,12}$/g" class="form-control" name="password" required>
+									<input id="password" type="password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+\-]).{8,12}$" class="form-control" name="password" required>
 								    <div class="invalid-feedback">
-								    	Password is required
+								    	Password must be between 8 and 12 characters. One capital. One number. One special character.
 							    	</div>
 								</div>
 
@@ -65,7 +65,7 @@
 								<button id="current-location" type = "button" onclick="getLocation()"><i class="fa-solid fa-location-crosshairs fa-lg"></i> &nbsp;&nbsp;Get current location</button>           
 								</div>
 								<!--Hidden input field to keep location coordinates-->
-								<input name="coordinates" type="text" id="coordinates" hidden>
+								<input name="coordinates" type="text" id="coordinates" class="form-control" hidden required>
 								<div class="invalid-feedback">
 									Select a location.
 								</div>
@@ -110,34 +110,60 @@
 
 </body>
 <script>
-	var heading = document.getElementById("heading");
+	const forms = document.querySelectorAll('.needs-validation')
+
 	var email = document.getElementsByName('email')[0];
-	var nam = document.getElementsByName('name')[0];
-	var coordinates = document.getElementsByName('coordinates')[0];
-	var password = document.getElementsByName('password')[0];
 	var email_taken = document.getElementById('email-taken');
+
+	document.addEventListener('DOMContentLoaded', () => {
+		watchFormChanges();
+	  });
+	
+
+
 	email.addEventListener('change', () => {
 		email_taken.style.display = 'none';
 	});
+
+	 // Function to check for changes in .form-control inputs
+	 function watchFormChanges() {
+		// Get all elements with the "form-control" class
+		const formControls = document.querySelectorAll('.form-control');
+	
+		// Add a change event listener to each input element
+		formControls.forEach(input => {
+		  input.addEventListener('keyup', () => {
+			// Callback function to be executed when the input value changes
+			if(!input.checkValidity()){
+				input.nextElementSibling.classList.remove('d-block');
+			}
+			
+			// You can perform additional actions here, such as updating a state or sending data to the server.
+		  });
+		});
+	  }
+	
+	  
+	
 	 //Form validation
 	 (() => {
 		'use strict'
 		// Fetch all the forms we want to apply custom Bootstrap validation styles to
-		const forms = document.querySelectorAll('.needs-validation')
 		// Loop over them and prevent submission
 		Array.from(forms).forEach(form => {
 		  form.addEventListener('submit', event => {
-		
-			if (!form.checkValidity()) {
-			  event.preventDefault()
-			  event.stopPropagation()
-			}
-			else {
+			event.preventDefault();
+			event.stopPropagation();
+			if (form.checkValidity()) {
+			 
 			event.preventDefault()
 			event.stopPropagation()		
 			const xhr = new XMLHttpRequest();
 			xhr.open("POST", "register");
 			xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+			var nam = document.getElementsByName('name')[0];
+			var coordinates = document.getElementsByName('coordinates')[0];
+			var password = document.getElementsByName('password')[0];
 			const json = JSON.stringify({
 				name :nam.value,
 				email :email.value,
@@ -150,6 +176,7 @@
 					console.log(xhr.responseText);
 					if(status ==="true")
 					{
+						var heading = document.getElementById("heading");
 						email_taken.style.display = "block";
 						heading.scrollIntoView();
 					}
@@ -162,10 +189,19 @@
 				}
 			  };
 			  xhr.send(json);
-
-
 			}
-			form.classList.add('was-validated')
+			else{			
+				var form_control = document.getElementsByClassName('form-control');
+				var invalid_feedback = document.getElementsByClassName('invalid-feedback');	
+				for(var i = 0; i < form_control.length;i++)
+				{
+					invalid_feedback[i].classList.remove('d-block');
+					if(!form_control[i].checkValidity())
+					{
+						invalid_feedback[i].classList.add('d-block');
+					}
+				}
+			}
 		  }, false)
 		})
 		})()
