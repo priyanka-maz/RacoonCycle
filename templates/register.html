@@ -125,20 +125,15 @@
 		email_taken.style.display = 'none';
 	});
 
-	 // Function to check for changes in .form-control inputs
 	 function watchFormChanges() {
-		// Get all elements with the "form-control" class
 		const formControls = document.querySelectorAll('.form-control');
 	
-		// Add a change event listener to each input element
 		formControls.forEach(input => {
 		  input.addEventListener('keyup', () => {
-			// Callback function to be executed when the input value changes
 			if(!input.checkValidity()){
 				input.nextElementSibling.classList.remove('d-block');
 			}
 			
-			// You can perform additional actions here, such as updating a state or sending data to the server.
 		  });
 		});
 	  }
@@ -206,10 +201,6 @@
 		})
 		})()
 
-		document.getElementById('submit').addEventListener('click', event => {
-			
-			
-		})
 
 
 	 /*MAP & LOCATION STUFF*/

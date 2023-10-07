@@ -27,7 +27,7 @@
     <body>
         <div class="header-spacing"></div>
         <form action="/upload" name="form" class="needs-validation" enctype="multipart/form-data" novalidate method="post">
-            <div class="form-holder">
+            <div class="form-holder" id="form-holder">
             <label for="file" style="cursor: pointer;" class="form-label">
             <div id="carouselExampleControls" class="carousel slide upload-preview" data-bs-ride="carousel"  data-bs-interval="false">
                 <div class="carousel-inner" id="upload-img-carosel">
@@ -149,7 +149,7 @@
             </div> 
 
 
-            <input type="submit" value="Submit" class="btn submit mt-5 mb-4" />
+            <input type="submit" value="Submit" class="btn submit mt-5 mb-4"/>
             </div>
         </form>
         <!--Displays 1st image compressed, remove hidden to see. Not important for compression, just for testing-->
@@ -343,11 +343,13 @@
     //Get current location
     function getLocation()
     {
+        var button = document.querySelector('#current-location');
         //Check if location available
         if(!navigator.geolocation){
             throw new Error("No geolocation");
         }
         function success(pos){
+            button.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-lg"></i> &nbsp;&nbsp;Get current location';
             var current_lat = pos.coords.latitude;
             var current_lon = pos.coords.longitude;
             console.log(current_lat, current_lon);
@@ -355,10 +357,12 @@
             writeAddress(current_lat, current_lon);
         }
         function error(){
+            button.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-lg"></i> &nbsp;&nbsp;Get current location';
             alert("No location service");
         }
-        const options = {timeout:5000}
-        navigator.geolocation.watchPosition(success, error, options);
+        const options = {timeout:10000}
+        navigator.geolocation.getCurrentPosition(success, error, options);
+        button.innerHTML += '&nbsp;&nbsp;<i class="fa-solid fa-circle-notch fa-spin"></i>'
     }
 
     function putMarkerViewCentre(lat, lon, zoom=null){

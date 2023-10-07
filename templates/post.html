@@ -32,7 +32,7 @@
             <div class="desc">{{ post['description'] }}</div>
                 <div class="stats">
                     <span class="waste-genre {{ 'visually-hidden' if post.get('waste_type') == '' }}">#{{ post['waste_type'] }}</span>
-                    <span class="distance" data-lat="{{ post['coordinates'].split(' ')[0] }}" data-lon="{{ post['coordinates'].split(' ')[1] }}"><i class="fa-solid fa-location-arrow"></i> &nbsp; - </span>
+                    <span class="distance" data-lat="{{ post['location']['coordinates'][0] }}" data-lon="{{ post['location']['coordinates'][1] }}"><i class="fa-solid fa-location-arrow"></i> &nbsp; - </span>
                 </div>
             <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
                 <div class="carousel-inner">
@@ -52,7 +52,7 @@
                 </button>
               </div>
               <div class="my-2 mx-1">
-              <a class="post-address" href="http://maps.google.com/maps?q={{ post['coordinates'].split(' ')[0] }},{{ post['coordinates'].split(' ')[1] }}" target="_blank"><i class="fa-solid fa-location-dot"></i>&nbsp; The address</a>
+              <a class="post-address" href="http://maps.google.com/maps?q={{ post['location']['coordinates'][0] }},{{ post['location']['coordinates'][1] }}" target="_blank"><i class="fa-solid fa-location-dot"></i>&nbsp; The address</a>
               </div>
               <div class="post-time mt-3" data-timestamp="{{ post['timestamp'] }}"></div>
 

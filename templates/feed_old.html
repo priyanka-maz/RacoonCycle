@@ -1,0 +1,226 @@
+{% extends "layout.html" %}
+{% block content %}
+<html>
+<head>
+    <link rel="icon" href="static/ananees800.png">
+
+    <title>Feed</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+      <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+    
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+
+    
+</head>
+    <body>
+        <div class="header-spacing"></div>
+        
+            <!-- <div class="post post-narrow">
+                <a href="/1234">
+                    <a href="#" class="profile-name">@bigRacoon</a>
+                <div class="desc">This is a fake post. The next ones are from db</div>
+                <div class="stats">
+                    <span class="waste-genre">#waste_genre</span>
+                    <span class="distance" data-lat="22.12344" data-lon="88.53214"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                </div>
+                <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="/static/images/icecream.jpg" class="d-block w-100">
+                    </div>
+                    </div>
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left fa-xl"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel1" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div class="post-time mt-3" data-timestamp="2023-10-03 18:21:37+00:00">11:51 PM&nbsp; • &nbsp;Tue, Oct 3 2023</div>
+            </a>
+
+            </div> -->
+
+       
+
+<!--FROM DB-->
+        <div class="post post-narrow text-center py-3" hx-get="/load">
+            <div class="sort-by">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="sort-by" id="cardboard" value="cardboard">
+                    <label class="form-check-label" for="cardboard">Latest</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="sort-by" id="glass" value="glass">
+                    <label class="form-check-label" for="glass">Home</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="sort-by" id="metal" value="metal">
+                    <label class="form-check-label" for="metal">Location</label>
+                </div>
+            </div>
+        </div>
+        <div id="post-container">
+            
+        {% for post in posts %}
+        <div class="post post-narrow">
+            <a href="/post?id={{post['_id']}}">
+                <div class="profile-name mx-2 mt-1"><i class="fa-regular fa-user fa-xs"></i> &nbsp;{{ post['user_name'] }}</div>
+                <div class="desc">{{ post['description'] }}</div>
+                <div class="stats">
+                    <span class="waste-genre {{ 'visually-hidden' if post.get('waste_type') == '' }}">#{{ post['waste_type'] }}</span>
+                    <span class="distance" data-lat="{{ post['coordinates'].split(' ')[0] }}" data-lon="{{ post['coordinates'].split(' ')[1] }}"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                </div>
+                <div id="carouselp{{loop.index}}" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner">
+                    
+                    {% for image in post['image'] %}
+                    <div class="carousel-item {{ 'active' if loop.index==1}}">
+                        <img src="/static/post_images/{{image}}.jpg" class="d-block w-100">
+                    </div>
+                    {% endfor %}
+                    </div>
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carouselp{{loop.index}}" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left fa-xl"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carouselp{{loop.index}}" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div class="post-time mt-3" data-timestamp="{{ post['timestamp'] }}"></div>
+                <!--<div class="status"><i class="fa-solid fa-check"></i></div>-->
+            </a>
+        </div>
+        {% endfor %}
+        </div>
+        <div class="my-5"></div>
+    </body>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            prevNext();
+            distance();
+            dateTime();
+        });
+
+
+        function sort(a=1){
+
+            distance_list = $('.distance');
+            post_list = $('.post');
+            if(a == 1){
+                post_list.sort(function(a, b){
+                    var a_lat = $(a).find('.distance').data('lat');
+                    var a_lon = $(a).find('.distance').data('lon');
+                    var b_lat = $(b).find('.distance').data('lat');
+                    var b_lon = $(b).find('.distance').data('lon');
+                    var current_lat = 22.66447;
+                    var current_lon = 88.43420;
+                    var distanceInKm_a = getDistanceFromLatLonInKm(current_lat, current_lon, a_lat, a_lon);
+                    var distanceInKm_b = getDistanceFromLatLonInKm(current_lat, current_lon, b_lat, b_lon);
+
+                    return distanceInKm_a - distanceInKm_b;
+                });
+            }
+            else{
+                post_list.sort(function(a,b){
+                    var current_time = new Date();
+                    var time_a = current_time - new Date($(a).find('.post-time').data('timestamp'));
+                    var time_b = current_time - new Date($(b).find('.post-time').data('timestamp'));
+                    console.log(time_a, time_b);
+                    return time_a - time_b;
+                }); 
+            }
+            $('#post-container').html(post_list);
+
+
+            console.log(post_list[0]);
+
+        }
+
+
+
+        function dateTime(){
+            var post_times = document.getElementsByClassName('post-time');
+            const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            const weekday = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+            for (var i = 0; i < post_times.length; i++){
+                var timestamp = post_times[i].dataset.timestamp;
+                dateTime = new Date(timestamp);
+                const time = dateTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                post_times[i].innerHTML = time + '&nbsp; &#8226; &nbsp;'+ weekday[dateTime.getDay()] +', ' + month[dateTime.getMonth()] + ' ' + dateTime.getDate() +' ' + dateTime.getFullYear();
+            }
+        }
+
+         function prevNext(){
+            var carousel_inner = document.getElementsByClassName("carousel-inner");
+            var prev = document.getElementsByClassName("carousel-control-prev");
+            var next = document.getElementsByClassName("carousel-control-next");
+
+            for (var i = 0; i < carousel_inner.length; i++)
+            {
+                console.log(carousel_inner[i].childElementCount);
+                if(carousel_inner[i].childElementCount > 1)
+                {
+                    console.log(carousel_inner[i].nextElementSibling.style.display = "block");
+                    prev[i].style.display = "block";
+                    next[i].style.display = "block";
+                }
+            }
+        }
+
+        function distance(){
+            var distance_elements = document.getElementsByClassName("distance");
+            var current_lat = 22.66447;
+            var current_lon = 88.43420;
+            for (var i = 0; i < distance_elements.length; i++){
+                var post_lat = distance_elements[i].dataset.lat;
+                var post_lon = distance_elements[i].dataset.lon;
+                var distanceInKm = getDistanceFromLatLonInKm(current_lat, current_lon, post_lat, post_lon);
+                distance_elements[i].innerHTML = '<i class="fa-solid fa-location-dot"></i> &nbsp;' + distanceInKm.toFixed(1) + 'km';
+                console.log(distanceInKm);
+            }
+        }
+
+
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+            var R = 6371; // Radius of the earth in km
+            var dLat = deg2rad(lat2-lat1);  // deg2rad below
+            var dLon = deg2rad(lon2-lon1); 
+            var a = 
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2)
+              ; 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            var d = R * c; // Distance in km
+            return d;
+          }
+          
+          function deg2rad(deg) {
+            return deg * (Math.PI/180)
+          }
+
+    </script>
+
+
+    {% endblock %}
+
+</html>

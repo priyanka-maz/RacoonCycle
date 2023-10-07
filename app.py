@@ -4,6 +4,8 @@ import base64
 import uuid
 import bcrypt
 import os
+import json
+import time
 
 from db_access import *
 
@@ -16,7 +18,7 @@ def generate_unique_filename():
     return unique_id.replace('-', '')
 
 @app.route('/upload', methods=['POST', 'GET'])
-def detect():
+def upload():
     if (request.method == 'POST'):
         req = request.form
         if(req['user_id'] != ''):
@@ -38,12 +40,14 @@ def detect():
                 with open(static_directory, 'wb') as f:
                     f.write(data)
             
+            lat = float(req['coordinates'].split(' ')[0])
+            lon = float(req['coordinates'].split(' ')[1])
             dict = {
                 'description': req['desc'],
-                'coordinates': req['coordinates'],
                 'waste_type': req['waste-category'] if req.get('waste-category') is not None else '',
                 'image': imageName,
-                'user_id': req['user_id']
+                'user_id': req['user_id'],
+                'location' :  {"type": "Point", "coordinates": [lat, lon]}
             }
             print(dict)
             storePost(dict)
@@ -51,20 +55,50 @@ def detect():
 
     return render_template('upload.html')
 
-@app.route('/feed', methods=['POST', 'GET'])
+@app.route('/feed_old', methods=['POST', 'GET'])
 def feed():
     posts = getPost()
-    for post in posts:
-        print(post)
-        id = post['image']
-    return render_template('feed.html', posts = posts)
+    return render_template('feed_old.html', posts = posts)
+
+@app.route('/feed', methods=['POST', 'GET'])
+def feed2():
+    return render_template('feed.html')
+
+@app.route('/load', methods=['POST', 'GET'])
+def load():
+    time.sleep(0.5)
+    page = request.args.get('page')
+    order = request.args.get('order')
+    if(order == 'latest'):
+        print('\n\nLATEST\n\n')
+        posts = getPosts(page_no=page)
+        return json.dumps(posts, default=str)
+    elif(order == 'home'):
+        print('\n\nCLOSE to HOME\n\n')
+        uid = request.args.get('uid')
+        posts = getPosts(page_no=page, uid=uid)
+        return json.dumps(posts, default=str)
+    elif(order == 'current'):
+        print('\n\nCLOSE to CURRENT LOC\n\n')
+        lat = request.args.get('lat')
+        lon = request.args.get('lon')
+        print(lat, lon)
+        posts = getPosts(page_no=page, location = [float(lat), float(lon)])
+        return json.dumps(posts, default=str)
+
 
 @app.route('/post', methods=['POST', 'GET'])
 def post():
     post_id = request.args.get('id')
     post = getPost(post_id)
-    print("From /about -> ", post)
     return render_template('post.html', post=post)
+
+@app.route('/userhome', methods=['POST', 'GET'])
+def userhome():
+    uid = request.args.get('uid')
+    lat, lon = getUserHome(uid)
+    location = [lat, lon]
+    return location
 
 @app.route('/about', methods=['POST', 'GET'])
 def about():
@@ -74,7 +108,7 @@ def about():
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if (request.method == 'POST'):
-        req = request.form
+        req = request.get_json()
         print(req)
 
         user_collection = fetchUserByEmail(req['email'])
@@ -85,15 +119,16 @@ def login():
 
             if bcrypt.checkpw(entered_password,  user_collection['password']):
                 print("Password is correct!")
-                response = make_response("Login Successful")
-                response.set_cookie('user_id', str(user_collection['_id']))
-                return response
+                uid = str(user_collection['_id'])
+                return uid
                 # profile redirect
             
             else:
                 print("Password is incorrect.")
+                return "wrong_password"
         else:
             print("No user with such email")
+            return "wrong_email"
         
     return render_template('login.html')
 
@@ -124,13 +159,6 @@ def register():
         
     return render_template('register.html')
 
-@app.route('/resetpassword', methods=['POST', 'GET'])
-def resetpassword():
-    return render_template('reset.html')
-
-@app.route('/forgotpassword', methods=['POST', 'GET'])
-def forgotpassword():
-    return render_template('forgot.html')
 
 @app.route('/profile', methods=['POST', 'GET'])
 def profile():

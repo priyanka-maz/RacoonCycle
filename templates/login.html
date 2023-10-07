@@ -28,6 +28,9 @@
 									<div class="invalid-feedback">
 										Email is invalid
 									</div>
+									<div id="email-wrong" class="mt-1 mx-2 text-danger text">
+										Email not registered!
+									</div>
 								</div>
 
 								<div class="mb-3">
@@ -37,8 +40,11 @@
 									</div>
 									<input id="password" type="password" class="form-control" name="password" required>
 								    <div class="invalid-feedback">
-								    	Password is required
+								    	Password is required!
 							    	</div>
+									<div id="password-wrong" class="mt-1 mx-2 text-danger text">
+										Wrong Password
+									</div>
 								</div>
 
 								<div class="w-100 text-center mt-5">
@@ -63,8 +69,103 @@
 		</div>
 	</section>
 
-	<script src="js/login.js"></script>
 </body>
+
+<script>
+	const forms = document.querySelectorAll('.needs-validation')
+
+	var email = document.getElementsByName('email')[0];
+
+	document.addEventListener('DOMContentLoaded', () => {
+		watchFormChanges();
+	  });
+	
+	 function watchFormChanges() {
+		const formControls = document.querySelectorAll('.form-control');
+		formControls.forEach(input => {
+		  input.addEventListener('keyup', () => {
+			if(!input.checkValidity()){
+				input.nextElementSibling.classList.remove('d-block');
+				input.nextElementSibling.nextElementSibling.style.display = 'none';
+			}
+			
+		  });
+		});
+	  }
+	(() => {
+		'use strict'
+		// Fetch all the forms we want to apply custom Bootstrap validation styles to
+		// Loop over them and prevent submission
+		Array.from(forms).forEach(form => {
+		  form.addEventListener('submit', event => {
+			event.preventDefault();
+			event.stopPropagation();
+			if (form.checkValidity()) {
+			 
+			event.preventDefault()
+			event.stopPropagation()		
+			const xhr = new XMLHttpRequest();
+			xhr.open("POST", "login");
+			var email = document.getElementsByName('email')[0];
+			var password = document.getElementsByName('password')[0];
+			var email_wrong = document.getElementById('email-wrong');
+			var password_wrong = document.getElementById('password-wrong');
+			email_wrong.style.display = 'none';
+			password_wrong.style.display = 'none';
+			const json = JSON.stringify({
+				email :email.value,
+				password :password.value
+			});
+			console.log(json);
+			xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+			xhr.onload = () => {
+				if (xhr.readyState == 4 && xhr.status == 200) {
+					status = xhr.responseText;
+					console.log(xhr.responseText);
+					if(status ==="wrong_email")
+					{
+						email_wrong.style.display = "block";
+					}
+					else if(status ==="wrong_password")
+					{
+						password_wrong.style.display = "block";
+					}
+					else{
+						setCookie("user_id", status, 30);
+						location.assign('/profile');
+					}
+
+				} else {
+				  console.log(`Error: ${xhr.status}`);
+				}
+			  };
+			  xhr.send(json);
+			}
+			else{			
+				var form_control = document.getElementsByClassName('form-control');
+				var invalid_feedback = document.getElementsByClassName('invalid-feedback');	
+				for(var i = 0; i < form_control.length;i++)
+				{
+					invalid_feedback[i].classList.remove('d-block');
+					if(!form_control[i].checkValidity())
+					{
+						invalid_feedback[i].classList.add('d-block');
+					}
+				}
+			}
+		  }, false)
+		})
+		})()
+
+
+		function setCookie(cname, cvalue, exdays) {
+			const d = new Date();
+			d.setTime(d.getTime() + (exdays*24*60*60*1000));
+			let expires = "expires="+ d.toUTCString();
+			document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+		  }
+
+</script>
 {% endblock %}
 
 </html>

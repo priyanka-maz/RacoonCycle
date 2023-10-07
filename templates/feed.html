@@ -27,7 +27,7 @@
     <body>
         <div class="header-spacing"></div>
         
-            <div class="post post-narrow">
+            <!-- <div class="post post-narrow">
                 <a href="/1234">
                     <a href="#" class="profile-name">@bigRacoon</a>
                 <div class="desc">This is a fake post. The next ones are from db</div>
@@ -40,10 +40,6 @@
                     <div class="carousel-item active">
                         <img src="/static/images/icecream.jpg" class="d-block w-100">
                     </div>
-                    <div class="carousel-item">
-                        <img src="/static/ananees800.png" class="d-block w-100">
-                    </div>
-                
                     </div>
                     <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
                         <i class="fa-solid fa-chevron-left fa-xl"></i>
@@ -54,64 +50,234 @@
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
-                <div class="status"><i class="fa-solid fa-check"></i></div>
+                <div class="post-time mt-3" data-timestamp="2023-10-03 18:21:37+00:00">11:51 PM&nbsp; • &nbsp;Tue, Oct 3 2023</div>
             </a>
 
-            </div>
+            </div> -->
 
        
 
 <!--FROM DB-->
-
-        {% for post in posts %}
-        <div class="post post-narrow">
-            <a href="/post?id={{post['_id']}}">
-                <div class="profile-name mx-2 mt-1"><i class="fa-regular fa-user fa-xs"></i> &nbsp;{{ post['user_name'] }}</div>
-                <div class="desc">{{ post['description'] }}</div>
-                <div class="stats">
-                    <span class="waste-genre {{ 'visually-hidden' if post.get('waste_type') == '' }}">#{{ post['waste_type'] }}</span>
-                    <span class="distance" data-lat="{{ post['coordinates'].split(' ')[0] }}" data-lon="{{ post['coordinates'].split(' ')[1] }}"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+        <div class="post post-narrow text-center py-3">
+            <div class="sort-by" id="sort-by">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="sort-by" id="latest" value="latest">
+                    <label class="form-check-label" for="latest">Latest</label>
                 </div>
-                <div id="carouselp{{loop.index}}" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
-                    <div class="carousel-inner">
-                    
-                    {% for image in post['image'] %}
-                    <div class="carousel-item {{ 'active' if loop.index==1}}">
-                        <img src="/static/post_images/{{image}}.jpg" class="d-block w-100">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="sort-by" id="home-location" value="home">
+                    <label class="form-check-label" for="home-location">Home</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="sort-by" id="current-location" value="location">
+                    <label class="form-check-label" for="current-location" id="current-location-label">Location</label>
+                </div>
+            </div>
+        </div>
+        <template id="template">
+            <div class="post post-narrow">
+            <a id="link" href="post?id=">
+                <div id="username" class="profile-name mx-3 mt-2"><i class="fa-regular fa-user fa-xs"></i> &nbsp;</div>
+                <div id="description" class="desc"></div>
+                <div class="stats">
+                    <span id="waste-genre" class="waste-genre">#</span>
+                    <span id="distance" class="distance" data-lat="" data-lon=""><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                </div>
+                <div id="carousel" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner" id="carousel-inner">
+                        <div id="carousel-item0" class="carousel-item active">
+                            <img id="image0" src="/static/post_images/" class="d-block w-100">
+                        </div>
                     </div>
-                    {% endfor %}
-                    </div>
-                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carouselp{{loop.index}}" data-bs-slide="prev">
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
                         <i class="fa-solid fa-chevron-left fa-xl"></i>
                         <span class="visually-hidden">Previous</span>
                     </button>
-                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carouselp{{loop.index}}" data-bs-slide="next">
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
                         <i class="fa-solid fa-chevron-right fa-xl"></i>             
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
-                <div class="post-time mt-3" data-timestamp="{{ post['timestamp'] }}"></div>
+                <div id="time" class="post-time mt-3 mb-2" data-timestamp=""></div>
                 <!--<div class="status"><i class="fa-solid fa-check"></i></div>-->
             </a>
         </div>
-        {% endfor %}
-        <div class="my-5"></div>
-                  
-                  
-               
-                
+        </template>
+        <div id="post-container">
+            
 
-        
+        </div>
+        <div id="sentinal" class="post py-5 text-center">
+            <div class="spinner-border text-muted" role="status">
+              </div>
+        </div>
+        <div class="my-5"></div>
     </body>
 
     <script>
+
+        var home_lat, home_lon, current_lat, current_lon, order="latest";
+
         document.addEventListener("DOMContentLoaded", function(){
-            prevNext();
-            distance();
-            dateTime();
+            userHomeLocation();
+            document.getElementById("latest").checked = true;
         });
 
-        function dateTime(){
+        function userHomeLocation(){
+            var uid = getCookie('user_id');
+            if(uid == '')
+            {
+                location.assign('/login');
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    // Append the new posts to the post-container
+                    data = JSON.parse(xhr.responseText);
+                    home_lat = data[0];
+                    home_lon = data[1];
+                    //postLoad(false, "latest");
+                    //distance();
+                }
+            };
+            xhr.open("POST", `/userhome?uid=${uid}`, true);
+            xhr.send();
+        }
+
+        var page_no = 1;
+        var sort_by = document.getElementById("sort-by");
+        sort_by.addEventListener("change", function(){
+            var option_selected = document.querySelector('input[name="sort-by"]:checked').value;
+                if(option_selected == 'latest'){
+                    order = 'latest';
+                    page_no = 1;
+                    postLoad(true, 'latest');
+                }
+                else if(option_selected == 'home'){
+                    order = 'home';
+                    page_no = 1;
+                    postLoad(true,'home');
+                }
+                else if(option_selected == 'location'){
+                    currentLocation();
+                    
+                }
+        });
+
+
+    //Get current location
+    function currentLocation()
+    {
+        //Check if location available
+        var label = document.querySelector('#current-location-label')
+        if(!navigator.geolocation){
+            throw new Error("No geolocation");
+        }
+        function success(pos){
+            label.innerHTML = 'Location'
+            current_lat = pos.coords.latitude;
+            current_lon = pos.coords.longitude;
+            console.log(current_lat, current_lon);
+
+            order = 'current';
+            page_no = 1;
+            postLoad(true, 'current');
+        }
+        function error(){
+            label.innerHTML = 'Location'
+            document.querySelector('#current-location').checked = false;
+            alert("No location service");
+        }
+        const options = {timeout:10000}
+        navigator.geolocation.getCurrentPosition(success, error, options);
+        label.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>&nbsp;&nbsp;' + label.innerHTML;
+    }
+
+        function postLoad(full = false, post_order){
+            var template = document.querySelector("#template");
+            var post_container = document.querySelector("#post-container");
+            var sentinal = document.querySelector("#sentinal");
+            var xhr = new XMLHttpRequest();
+            console.log('postLoad called with', post_order);
+            if(full){
+                post_container.innerHTML = '';
+            }
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    // Append the new posts to the post-container
+                    post_data = JSON.parse(xhr.response);
+                    console.log(post_data.length);
+                    if(post_data.length == 0){
+                        sentinal.innerHTML = "That's All!";
+                        return;
+                    }
+                    sentinal.innerHTML ='<div class="spinner-border text-muted" role="status">'
+                    for (var i = 0; i < post_data.length; i++){
+                        var template_clone = template.content.cloneNode(true);
+                        template_clone.querySelector("#link").href += post_data[i]._id;
+                        template_clone.querySelector("#username").innerHTML += post_data[i].user_name;
+                        template_clone.querySelector("#description").innerHTML += post_data[i].description;
+                        template_clone.querySelector("#carousel").id = "carousel" + page_no + i;
+                        template_clone.querySelector("#prev").dataset.bsTarget = "#carousel" + page_no + i;
+                        template_clone.querySelector("#next").dataset.bsTarget = "#carousel" + page_no + i;
+                        template_clone.querySelector("#image0").src = '/static/post_images/' + post_data[i].image[0] + '.jpg';
+                        if(post_data[i].waste_type != '')
+                            template_clone.querySelector("#waste-genre").innerHTML += post_data[i].waste_type;
+                        else
+                        template_clone.querySelector("#waste-genre").style.display = 'none';
+                        template_clone.querySelector("#distance").dataset.lat = post_data[i].location.coordinates[0];
+                        template_clone.querySelector("#distance").dataset.lon = post_data[i].location.coordinates[1];
+                        template_clone.querySelector("#time").dataset.timestamp = post_data[i].timestamp;
+
+
+                        for(var j=1;j<post_data[i].image.length;j++){
+                            var carousel_item = `<div id="carousel-item${j}" class="carousel-item"><img id="image${j}" src="/static/post_images/${post_data[i].image[j]}.jpg" class="d-block w-100"></div>`;
+                            template_clone.querySelector("#carousel-inner").innerHTML += carousel_item;
+                        }
+                        post_container.appendChild(template_clone);
+                    }
+                    
+                    distance(post_order);
+                    prevNext();
+                    putDateTime();
+                }
+            };
+            var uid = getCookie('user_id');
+            if(uid == '')
+            {
+                location.assign('/login');
+            }
+            var lat, lon;
+            if(post_order == 'current'){
+                lat = current_lat;
+                lon = current_lon;
+            }
+            else{
+                lat = home_lat;
+                lon = home_lon;
+            }
+            xhr.open("POST", `/load?page=${page_no}&order=${post_order}&lat=${lat}&lon=${lon}&uid=${uid}`, true);
+            xhr.send();
+            page_no++;
+        }
+
+        var intersectionObserver = new IntersectionObserver(entries =>{
+            if(entries[0].intersectionRatio <=0)
+            {
+                return;
+            }
+            else{
+                if(document.getElementById('post-container').innerHTML !='')
+                {
+                    console.log('scroller');
+                    postLoad(false, order);
+                }
+            }
+        });
+        intersectionObserver.observe(document.querySelector("#sentinal"));
+
+
+        function putDateTime(){
             var post_times = document.getElementsByClassName('post-time');
             const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
             const weekday = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -128,32 +294,32 @@
             var carousel_inner = document.getElementsByClassName("carousel-inner");
             var prev = document.getElementsByClassName("carousel-control-prev");
             var next = document.getElementsByClassName("carousel-control-next");
-
             for (var i = 0; i < carousel_inner.length; i++)
             {
-                console.log(carousel_inner[i].childElementCount);
+
                 if(carousel_inner[i].childElementCount > 1)
                 {
-                    console.log(carousel_inner[i].nextElementSibling.style.display = "block");
+                    carousel_inner[i].nextElementSibling.style.display = "block";
                     prev[i].style.display = "block";
                     next[i].style.display = "block";
                 }
             }
         }
 
-        function distance(){
+        function distance(order = ''){
             var distance_elements = document.getElementsByClassName("distance");
-            var current_lat = 22.66447;
-            var current_lon = 88.43420;
             for (var i = 0; i < distance_elements.length; i++){
                 var post_lat = distance_elements[i].dataset.lat;
                 var post_lon = distance_elements[i].dataset.lon;
-                var distanceInKm = getDistanceFromLatLonInKm(current_lat, current_lon, post_lat, post_lon);
+                var distanceInKm;
+                if(order == 'current')
+                    distanceInKm = getDistanceFromLatLonInKm(current_lat, current_lon, post_lat, post_lon);
+                else
+                    distanceInKm = getDistanceFromLatLonInKm(home_lat, home_lon, post_lat, post_lon);
+
                 distance_elements[i].innerHTML = '<i class="fa-solid fa-location-dot"></i> &nbsp;' + distanceInKm.toFixed(1) + 'km';
-                console.log(distanceInKm);
             }
         }
-
 
         function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
             var R = 6371; // Radius of the earth in km
@@ -162,8 +328,7 @@
             var a = 
               Math.sin(dLat/2) * Math.sin(dLat/2) +
               Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-              Math.sin(dLon/2) * Math.sin(dLon/2)
-              ; 
+              Math.sin(dLon/2) * Math.sin(dLon/2); 
             var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
             var d = R * c; // Distance in km
             return d;
@@ -171,6 +336,22 @@
           
           function deg2rad(deg) {
             return deg * (Math.PI/180)
+          }
+
+
+          function getCookie(cname) {
+            let name = cname + "=";
+            let ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+              }
+              if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+              }
+            }
+            return "";
           }
 
     </script>
