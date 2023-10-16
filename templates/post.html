@@ -24,17 +24,18 @@
 
     
 </head>
-    <body>
-        <div class="header-spacing"></div>
-
+    <body class="pg-bg">
+        <div class="header-spacing "></div>
+        {% if post is not none %}
         <div class="post post-wide">
-            <div class="profile-name mx-2 mt-1"><i class="fa-regular fa-user fa-xs"></i> &nbsp;{{ post['user_name'] }}</div>
+            <div class="profile-name mx-3 mt-2" ><a href="/profile?id={{ post['user_id'] }}"><i class="fa-regular fa-user fa-xs"></i> &nbsp;{{ post['user_name'] }}</a></div>
             <div class="desc">{{ post['description'] }}</div>
                 <div class="stats">
                     <span class="waste-genre {{ 'visually-hidden' if post.get('waste_type') == '' }}">#{{ post['waste_type'] }}</span>
                     <span class="distance" data-lat="{{ post['location']['coordinates'][0] }}" data-lon="{{ post['location']['coordinates'][1] }}"><i class="fa-solid fa-location-arrow"></i> &nbsp; - </span>
+                    <span class="resolved {{ 'visually-hidden' if post.get('resolved') is none }}"><i class="fa-regular fa-circle-check"></i> &nbsp;Resolved</span>
                 </div>
-            <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+            <div id="carousel1" class="carousel slide feed-img m-2" data-bs-ride="carousel"  data-bs-interval="false">
                 <div class="carousel-inner">
                     {% for image in post['image'] %}
                     <div class="carousel-item {{ 'active' if loop.index==1}}">
@@ -54,13 +55,94 @@
               <div class="my-2 mx-1">
               <a class="post-address" href="http://maps.google.com/maps?q={{ post['location']['coordinates'][0] }},{{ post['location']['coordinates'][1] }}" target="_blank"><i class="fa-solid fa-location-dot"></i>&nbsp; The address</a>
               </div>
-              <div class="post-time mt-3" data-timestamp="{{ post['timestamp'] }}"></div>
+              
+              <div class="post-time my-2" data-timestamp="{{ post['timestamp'] }}"></div>
+              
+              <!--RESOLVED FORM and button displayed if not resolved-->
+              {% if post.get('resolved') is none %}
+              <button class="take-action py-3 px-4 m-2" id ="action-taken">&nbsp; Action Taken &nbsp;</button>
+                <form action="/post" name="form" class="needs-validation visually-hidden" enctype="multipart/form-data" novalidate method="post" id="resolved-form">
+                    <div id="space" class="py-3"> </div>
+                    <div class="form-holder" id="form-holder">
+                    <hr>
+                    <div class="close-button me-2 mb-3 mt-2" id="resolved-close"><i class="fa-solid fa-xmark"></i></div>
+                    <h3 class="ms-3 text-muted mb-4 mt-5">Tell us about it </h3>
+                    <label for="file" style="cursor: pointer;" class="form-label">
+                    <div id="carousel2" class="carousel slide upload-preview2 " data-bs-ride="carousel"  data-bs-interval="false">
+                        <div class="carousel-inner" id="upload-img-carosel">
+                        <div class="carousel-item active">
+                            <img src="/static/images/smile.png" class="d-block w-100">
+                        </div>
+                    
+                        </div>
+                        <button id="prev2" class="carousel-control-prev" type="button" data-bs-target="#carousel2" data-bs-slide="prev">
+                            <i class="fa-solid fa-chevron-left fa-xl"></i>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button id="next2" class="carousel-control-next" type="button" data-bs-target="#carousel2" data-bs-slide="next">
+                            <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                    </label>
+                    <br>
+                    <label for="file" style="cursor: pointer;" class="form-label upload-image"><i class="fa-solid fa-arrow-up-from-bracket fa-lg"></i> &nbsp;&nbsp;Upload</label>
+                    <input name="file" type="file"  accept="image/gif, image/jpeg, image/jpg, image/png"  id="file" onchange="loadFile(event)" multiple hidden required>
+                    <div class="invalid-feedback">
+                        Please upload an image.
+                    </div>
+                    <br>
+                    
 
-              <!--<div class="status"><i class="fa-solid fa-check"></i></div>--> 
+                    <div class="form-floating">
+                        <textarea name="desc" type = "text" class = "form-control"  id = "desc"  placeholder="Description of the post..." minlength="10" maxlength="200" pattern="^[^<>]*$" required></textarea>
+                        <label for="desc" class="col-form-label text-muted">Describe the situation now...</label>
+                        <div class="invalid-feedback">
+                            Write atleast 10 characters
+                        </div>
+                    </div>
+                                
+                    <input name="blob" type = "text" class = "form-control"  id = "blob" hidden>
+                    <input name="user_id" type = "text" class = "form-control"  id = "user_id" hidden>
+                    <input name="post_id" type = "text" class = "form-control"  id = "post_id" hidden>
+
+                    <input type="submit" value="Submit" class="btn submit mt-5"/>
+                </div>
+            </form>
+            <img id="base64" hidden>
+    
+            <!--IMAGES and DESC displayed if resolved-->
+            {% else %}
+                <hr class="mt-5">
+                <div class="profile-name ms-2 mt-5" >Marked resolved by&nbsp; <i class="fa-solid fa-arrow-right fa-sm"></i>&nbsp; <a href="/profile?id={{ post['resolved']['user_id'] }}" class="resolved-username px-3 py-1"> {{ post['resolved']['name'] }}</a></div>
+                <div class="desc mb-2 mt-2">{{ post['resolved']['description'] }}</div>
+                <div id="carousel2" class="carousel slide feed-img m-2" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner">
+                        {% for image in post['resolved']['image'] %}
+                        <div class="carousel-item {{ 'active' if loop.index==1}}">
+                            <img src="/static/post_images/{{image}}.jpg" class="d-block w-100">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel2" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left fa-xl"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel2" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div class="post-time my-3" data-timestamp="{{ post['resolved']['timestamp'] }}"></div>
+            {% endif %}
+
               
         </div>
+        {% else %}
+            <div class="error">*Sad Racoon noises</div>
+        {% endif %}
 
-        <div class="my-5"></div>
+        <div class="my-5 py-1"></div>
 
 
     </body>
@@ -69,6 +151,30 @@
             prevNext();
             distance();
             dateTime();
+        });
+
+        var action_taken = document.getElementById("action-taken");
+        var resolved_close = document.getElementById("resolved-close");
+
+        action_taken.addEventListener("mouseover", function(){
+            action_taken.innerHTML = "<i class='fa-solid fa-check fa-lg fa-fade'></i> &nbsp; Action Taken";
+        })
+        action_taken.addEventListener("mouseleave", function(){
+            action_taken.innerHTML = "Action Taken";
+        })
+
+        action_taken.addEventListener("click", function(){
+            var resolved_form = document.getElementById("resolved-form");
+            resolved_form.classList.remove("visually-hidden");
+            document.getElementById("space").scrollIntoView();
+            action_taken.style.display = "none";
+        });
+
+        resolved_close.addEventListener("click", function(){
+            var resolved_form = document.getElementById("resolved-form");
+            resolved_form.classList.add("visually-hidden");
+            action_taken.style.display = "block";
+            document.getElementsByClassName('header-spacing')[0].scrollIntoView();
         });
 
         function dateTime(){
@@ -146,6 +252,151 @@
           function deg2rad(deg) {
             return deg * (Math.PI/180)
           }
+
+
+          document.addEventListener("DOMContentLoaded", function(){
+            if(getCookie('user_id') == '')
+            {
+                location.assign('/login');
+            }
+        });
+
+        function getCookie(cname) {
+            let name = cname + "=";
+            let ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+              }
+              if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+              }
+            }
+            return "";
+          }
+
+
+
+
+        //Load files
+        var loadFile = function(event) {
+            
+            var blob_input = document.getElementById("blob");
+            var upload_container = document.getElementById("upload-img-carosel");
+            if(event.target.files.length!=0){
+                upload_container.innerHTML = ""
+                blob_input.value = '';
+            }
+
+            //Enable arrows if multiple images
+           if(event.target.files.length > 1){
+            document.getElementById('prev2').style.display='block';
+            document.getElementById('next2').style.display='block';
+           }
+
+           if(event.target.files.length > 4){
+            alert("Maximum 4 images allowed!");
+           }
+            
+            for(var i=0; i < 4; i++) {
+                carosel_item = document.createElement("div");
+                carosel_item.classList.add("carousel-item");
+                if(i==0){
+                    carosel_item.classList.add("active");
+                }
+                img = document.createElement("img");
+                img.classList.add("d-block", "w-100");
+                img.src=URL.createObjectURL(event.target.files[i]);
+                console.log(event.target.files[i]);
+                convertImageToBase64(img.src);
+                carosel_item.appendChild(img);
+                upload_container.appendChild(carosel_item);
+            }
+
+        };
+        //Compression function
+        function convertImageToBase64(imgUrl) {
+            //width or height, whichever is higher will be made 500px
+            var MAX_WIDTH = 500;
+            var MAX_HEIGHT = 500;
+            const image = new Image();
+            var base64 = document.getElementById("base64")
+            image.crossOrigin='anonymous';
+
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                var width = image.width;
+                var height = image.height;
+                // Change the resizing logic
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height = height * (MAX_WIDTH / width);
+                        width = MAX_WIDTH;
+                    }
+                } 
+                else {
+                    if (height > MAX_HEIGHT) {
+                        width = width * (MAX_HEIGHT / height);
+                        height = MAX_HEIGHT;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(image, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL();
+                var base64ImageData = dataUrl.split(',')[1]; // Remove the data URL prefix
+                var binaryImageData = atob(base64ImageData); // Decode base64 to binary
+                
+                canvas.toBlob(function(blob) {
+                    // blob contains the image data in Blob format
+                    // You can do something with the blob, like create a URL or send it to a server
+                    var blob_input = document.getElementById('blob');
+                    var blobUrl = URL.createObjectURL(blob);
+                    base64.src = blobUrl;
+                    blob_input.value = base64ImageData + " " + blob_input.value;
+                  }, "image/png", 1); 
+
+            }
+            image.src = imgUrl;
+          }
+
+
+          //Form validation
+          (() => {
+            'use strict'
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            const forms = document.querySelectorAll('.needs-validation');
+            var user_id = document.getElementById('user_id');
+            var post_id = document.getElementById('post_id');
+            // Loop over them and prevent submission
+            Array.from(forms).forEach(form => {
+              form.addEventListener('submit', event => {
+                if(getCookie('user_id')!='')
+                {
+                    user_id.value = getCookie('user_id');
+                    var url = window.location.search;
+                    var post_id_url = new URLSearchParams(url).get('id');
+                    post_id.value = post_id_url;
+                    console.log(post_id_url);
+                }
+                else{
+                    location.assign('/login');
+                }
+            
+                if (!form.checkValidity()) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                }
+                
+                form.classList.add('was-validated')
+              }, false)
+            })
+            })()
+    
+    //Title/Description limit
 
     </script>
 

@@ -51,7 +51,7 @@ def upload():
             }
             print(dict)
             storePost(dict)
-            return redirect('/upload')
+            return redirect('/feed')
 
     return render_template('upload.html')
 
@@ -64,34 +64,73 @@ def feed():
 def feed2():
     return render_template('feed.html')
 
-@app.route('/load', methods=['POST', 'GET'])
-def load():
-    time.sleep(0.5)
+@app.route('/load_feed', methods=['POST', 'GET'])
+def load_feed():
+    time.sleep(0.2)
     page = request.args.get('page')
     order = request.args.get('order')
     if(order == 'latest'):
         print('\n\nLATEST\n\n')
-        posts = getPosts(page_no=page)
+        posts = getPostsForFeed(page_no=page)
         return json.dumps(posts, default=str)
     elif(order == 'home'):
         print('\n\nCLOSE to HOME\n\n')
         uid = request.args.get('uid')
-        posts = getPosts(page_no=page, uid=uid)
+        posts = getPostsForFeed(page_no=page, uid=uid)
         return json.dumps(posts, default=str)
     elif(order == 'current'):
         print('\n\nCLOSE to CURRENT LOC\n\n')
         lat = request.args.get('lat')
         lon = request.args.get('lon')
         print(lat, lon)
-        posts = getPosts(page_no=page, location = [float(lat), float(lon)])
+        posts = getPostsForFeed(page_no=page, location = [float(lat), float(lon)])
         return json.dumps(posts, default=str)
 
+@app.route('/load_profile', methods=['POST', 'GET'])
+def load_profile():
+    time.sleep(0.5)
+    page = request.args.get('page')
+    profile_id = request.args.get('profile_id')
+    posts = getPostsForProfile(page_no=page, profile_id = profile_id)
+    print(posts)
+    return json.dumps(posts, default=str)
 
 @app.route('/post', methods=['POST', 'GET'])
 def post():
-    post_id = request.args.get('id')
-    post = getPost(post_id)
-    return render_template('post.html', post=post)
+    if(request.method == 'GET'):
+        post_id = request.args.get('id')
+        post = getPost(post_id)
+        
+        return render_template('post.html', post=post)
+    
+    elif(request.method == 'POST'):
+        req = request.form
+        print(req)
+        if(req['user_id'] != ''):
+            imagesData = req['blob'].split(' ')
+            imagesData.pop()
+            imageName = []
+            for imageData in imagesData:
+                data = base64.b64decode(imageData)
+                uniqueName = generate_unique_filename()
+                imageName.append(uniqueName)
+
+                script_path = os.path.abspath(__file__)
+
+                app_directory = os.path.dirname(script_path)
+
+                static_directory = os.path.join(app_directory, "static/post_images/" + uniqueName + ".jpg")
+
+                with open(static_directory, 'wb') as f:
+                    f.write(data)
+            
+            dict = {
+                'description': req['desc'],
+                'image': imageName,
+                'user_id': req['user_id']
+            }
+            postResolved(req['post_id'], dict)
+        return redirect('/post?id='+str(req.get('post_id')))
 
 @app.route('/userhome', methods=['POST', 'GET'])
 def userhome():
@@ -162,7 +201,9 @@ def register():
 
 @app.route('/profile', methods=['POST', 'GET'])
 def profile():
-    return render_template('profile.html')
+    uid = request.args.get('id')
+    user_info = fetchUserByUID(uid)
+    return render_template('profile.html', user_info = user_info)
 
 if __name__ == '__main__':
     app.run(port = '5000', debug=True)

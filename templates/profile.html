@@ -1,0 +1,273 @@
+{% extends "layout.html" %}
+{% block content %}
+<html>
+    <head>
+        <link rel="icon" href="static/ananees800.png">
+
+        <title>Profile</title>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    </head>
+    <body class="pg-bg">
+        <div class="header-spacing"></div>
+        {% if user_info is not none %}    
+        <div class="post profile-info p-4">
+            <span class="username ms-lg-2">{{ user_info['name'] }}</span>
+            <span class="join-date ms-lg-2" data-jointime="{{ user_info['join_time'] }}"></span>
+            <br>
+            <a href="mailto:someone@example.com" class="email  ms-lg-2">{{ user_info['email'] if user_info['email']|length <= 30 else user_info['email'][:30]+"..." }}</a>
+            <div class="row justify-content-center text-center mt-5">
+                <div class="col">
+                    <div class="number-text">Posts</div>
+                    <div class="number">{{ user_info['post_count'] }}</div>
+                </div>
+
+                <div class="col">
+                    <div class="number-text">Verified</div>
+                    <div class="number">500</div>
+
+                </div>
+                <div class="col">
+                    <div class="number-text">Approved</div>
+                    <div class="number">005</div>
+                </div>
+            </div>
+        </div>
+
+        <template id="template">
+            <div class="post post-narrow">
+            <a id="link" href="post?id=">
+                <div id="username" class="profile-name mx-3 mt-2"><i class="fa-regular fa-user fa-xs"></i> &nbsp;</div>
+                <div id="description" class="desc"></div>
+                <div class="stats">
+                    <span id="waste-genre" class="waste-genre">#</span>
+                    <span id="distance" class="distance" data-lat="" data-lon=""><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                    <span id="resolved" class="resolved"></span>
+
+                </div>
+                <div id="carousel" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                    <div class="carousel-inner" id="carousel-inner">
+                        <div id="carousel-item0" class="carousel-item active">
+                            <img id="image0" src="/static/post_images/" class="d-block w-100">
+                        </div>
+                    </div>
+                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left fa-xl"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div id="time" class="post-time mt-3 mb-2" data-timestamp=""></div>
+                <!--<div class="status"><i class="fa-solid fa-check"></i></div>-->
+            </a>
+        </div>
+        </template>
+
+        <div id="post-container">
+
+        </div>
+        <div id="sentinal" class="post py-5 text-center">
+            <div class="spinner-border text-muted" role="status">
+              </div>
+        </div>
+        {% else %}
+            <div class="error">*Sad Racoon noises</div>
+        {% endif %}
+
+    </body>
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function(){
+            userHomeLocation();
+            putJoinDate();
+        });
+        var home_lat, home_lon, page_no = 1;
+
+        function userHomeLocation(){
+            var uid = getCookie('user_id');
+            if(uid == '')
+            {
+                location.assign('/login');
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    // Append the new posts to the post-container
+                    data = JSON.parse(xhr.responseText);
+                    home_lat = data[0];
+                    home_lon = data[1];
+                    //postLoad(false, "latest");
+                    //distance();
+                }
+            };
+            xhr.open("POST", `/userhome?uid=${uid}`, true);
+            xhr.send();
+        }
+
+        var intersectionObserver = new IntersectionObserver(entries =>{
+            if(entries[0].intersectionRatio <=0)
+            {
+                return;
+            }
+            else{
+                if(document.getElementById('post-container').innerHTML !='')
+                {
+                    console.log('scroller');
+                    postLoad(false, 'latest');
+                }
+            }
+        });
+        intersectionObserver.observe(document.querySelector("#sentinal"));
+
+        function postLoad(full = false, post_order){
+            var template = document.querySelector("#template");
+            var post_container = document.querySelector("#post-container");
+            var sentinal = document.querySelector("#sentinal");
+            var xhr = new XMLHttpRequest();
+            console.log('postLoad called with', post_order);
+            if(full){
+                post_container.innerHTML = '';
+            }
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    // Append the new posts to the post-container
+                    post_data = JSON.parse(xhr.response);
+                    console.log(post_data.length);
+                    if(post_data.length == 0){
+                        sentinal.innerHTML = "That's All!";
+                        return;
+                    }
+                    sentinal.innerHTML ='<div class="spinner-border text-muted" role="status">'
+                    for (var i = 0; i < post_data.length; i++){
+                        var template_clone = template.content.cloneNode(true);
+                        template_clone.querySelector("#link").href += post_data[i]._id;
+                        template_clone.querySelector("#username").innerHTML += post_data[i].user_name;
+                        template_clone.querySelector("#description").innerHTML += post_data[i].description;
+                        template_clone.querySelector("#carousel").id = "carousel" + page_no + i;
+                        template_clone.querySelector("#prev").dataset.bsTarget = "#carousel" + page_no + i;
+                        template_clone.querySelector("#next").dataset.bsTarget = "#carousel" + page_no + i;
+                        template_clone.querySelector("#image0").src = '/static/post_images/' + post_data[i].image[0] + '.jpg';
+                        if(post_data[i].waste_type != '')
+                            template_clone.querySelector("#waste-genre").innerHTML += post_data[i].waste_type;
+                        else
+                            template_clone.querySelector("#waste-genre").style.display = 'none';
+                        if(post_data[i].resolved != undefined){
+                            template_clone.querySelector("#resolved").innerHTML = '<i class="fa-regular fa-circle-check"></i>&nbsp;&nbsp;Resolved';
+                        }
+                        template_clone.querySelector("#distance").dataset.lat = post_data[i].location.coordinates[0];
+                        template_clone.querySelector("#distance").dataset.lon = post_data[i].location.coordinates[1];
+                        template_clone.querySelector("#time").dataset.timestamp = post_data[i].timestamp;
+
+
+                        for(var j=1;j<post_data[i].image.length;j++){
+                            var carousel_item = `<div id="carousel-item${j}" class="carousel-item"><img id="image${j}" src="/static/post_images/${post_data[i].image[j]}.jpg" class="d-block w-100"></div>`;
+                            template_clone.querySelector("#carousel-inner").innerHTML += carousel_item;
+                        }
+                        post_container.appendChild(template_clone);
+                    }
+                    
+                    distance();
+                    prevNext();
+                    putDateTime();
+                }
+            };
+            var uid = getCookie('user_id');
+            if(uid == '')
+            {
+                location.assign('/login');
+            }
+            url = window.location.search;
+            profile_id = new URLSearchParams(url).get('id');
+            xhr.open("POST", `/load_profile?profile_id=${profile_id}&page=${page_no}`, true);
+            xhr.send();
+            page_no++;
+        }
+
+        function prevNext(){
+            var carousel_inner = document.getElementsByClassName("carousel-inner");
+            var prev = document.getElementsByClassName("carousel-control-prev");
+            var next = document.getElementsByClassName("carousel-control-next");
+            for (var i = 0; i < carousel_inner.length; i++)
+            {
+
+                if(carousel_inner[i].childElementCount > 1)
+                {
+                    carousel_inner[i].nextElementSibling.style.display = "block";
+                    prev[i].style.display = "block";
+                    next[i].style.display = "block";
+                }
+            }
+        }
+
+        function distance(){
+            var distance_elements = document.getElementsByClassName("distance");
+            for (var i = 0; i < distance_elements.length; i++){
+                var post_lat = distance_elements[i].dataset.lat;
+                var post_lon = distance_elements[i].dataset.lon;
+                var distanceInKm;
+                
+                distanceInKm = getDistanceFromLatLonInKm(home_lat, home_lon, post_lat, post_lon);
+
+                distance_elements[i].innerHTML = '<i class="fa-solid fa-location-dot"></i> &nbsp;' + distanceInKm.toFixed(1) + 'km';
+            }
+        }
+
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+            var R = 6371; // Radius of the earth in km
+            var dLat = deg2rad(lat2-lat1);  // deg2rad below
+            var dLon = deg2rad(lon2-lon1); 
+            var a = 
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            var d = R * c; // Distance in km
+            return d;
+          }
+          
+          function deg2rad(deg) {
+            return deg * (Math.PI/180)
+          }
+          function getCookie(cname) {
+            let name = cname + "=";
+            let ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+              }
+              if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+              }
+            }
+            return "";
+          }
+          
+          
+        function putDateTime(){
+            var post_times = document.getElementsByClassName('post-time');
+            const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            const weekday = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+            for (var i = 0; i < post_times.length; i++){
+                var timestamp = post_times[i].dataset.timestamp;
+                dateTime = new Date(timestamp);
+                const time = dateTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                post_times[i].innerHTML = time + '&nbsp; &#8226; &nbsp;'+ weekday[dateTime.getDay()] +', ' + month[dateTime.getMonth()] + ' ' + dateTime.getDate() +' ' + dateTime.getFullYear();
+            }
+        }
+
+        function putJoinDate(){
+            var join_date = document.getElementsByClassName('join-date')[0];
+            const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];            
+            var timestamp = join_date.dataset.jointime;
+            dateTime = new Date(timestamp);
+            const time = dateTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            join_date.innerHTML = '&nbsp;' + month[dateTime.getMonth()] + ' ' + dateTime.getFullYear();
+        }
+    </script>
+{% endblock %}
+</html>

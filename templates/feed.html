@@ -24,53 +24,23 @@
 
     
 </head>
-    <body>
+    <body class="pg-bg">
         <div class="header-spacing"></div>
-        
-            <!-- <div class="post post-narrow">
-                <a href="/1234">
-                    <a href="#" class="profile-name">@bigRacoon</a>
-                <div class="desc">This is a fake post. The next ones are from db</div>
-                <div class="stats">
-                    <span class="waste-genre">#waste_genre</span>
-                    <span class="distance" data-lat="22.12344" data-lon="88.53214"><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
-                </div>
-                <div id="carousel1" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
-                    <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img src="/static/images/icecream.jpg" class="d-block w-100">
-                    </div>
-                    </div>
-                    <button id="prev" class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
-                        <i class="fa-solid fa-chevron-left fa-xl"></i>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button id="next" class="carousel-control-next" type="button" data-bs-target="#carousel1" data-bs-slide="next">
-                        <i class="fa-solid fa-chevron-right fa-xl"></i>             
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-                <div class="post-time mt-3" data-timestamp="2023-10-03 18:21:37+00:00">11:51 PM&nbsp; • &nbsp;Tue, Oct 3 2023</div>
-            </a>
-
-            </div> -->
-
-       
 
 <!--FROM DB-->
         <div class="post post-narrow text-center py-3">
             <div class="sort-by" id="sort-by">
-                <div class="form-check form-check-inline">
+                <div class="form-check form-check-inline m-1">
                     <input class="form-check-input" type="radio" name="sort-by" id="latest" value="latest">
-                    <label class="form-check-label" for="latest">Latest</label>
+                    <label class="form-check-label px-3 py-1 px-lg-4 py-lg-2" for="latest">Latest</label>
                 </div>
-                <div class="form-check form-check-inline">
+                <div class="form-check form-check-inline m-1">
                     <input class="form-check-input" type="radio" name="sort-by" id="home-location" value="home">
-                    <label class="form-check-label" for="home-location">Home</label>
+                    <label class="form-check-label px-3 py-1 px-lg-4 py-lg-2" for="home-location">Home</label>
                 </div>
-                <div class="form-check form-check-inline">
+                <div class="form-check form-check-inline m-1">
                     <input class="form-check-input" type="radio" name="sort-by" id="current-location" value="location">
-                    <label class="form-check-label" for="current-location" id="current-location-label">Location</label>
+                    <label class="form-check-label px-3 py-1 px-lg-4 py-lg-2" for="current-location" id="current-location-label">Location</label>
                 </div>
             </div>
         </div>
@@ -82,8 +52,9 @@
                 <div class="stats">
                     <span id="waste-genre" class="waste-genre">#</span>
                     <span id="distance" class="distance" data-lat="" data-lon=""><i class="fa-solid fa-location-dot"></i> &nbsp;0.5km</span>
+                    <span id="resolved" class="resolved"></span>
                 </div>
-                <div id="carousel" class="carousel slide feed-img" data-bs-ride="carousel"  data-bs-interval="false">
+                <div id="carousel" class="carousel slide feed-img m-2" data-bs-ride="carousel"  data-bs-interval="false">
                     <div class="carousel-inner" id="carousel-inner">
                         <div id="carousel-item0" class="carousel-item active">
                             <img id="image0" src="/static/post_images/" class="d-block w-100">
@@ -221,10 +192,14 @@
                         template_clone.querySelector("#prev").dataset.bsTarget = "#carousel" + page_no + i;
                         template_clone.querySelector("#next").dataset.bsTarget = "#carousel" + page_no + i;
                         template_clone.querySelector("#image0").src = '/static/post_images/' + post_data[i].image[0] + '.jpg';
-                        if(post_data[i].waste_type != '')
-                            template_clone.querySelector("#waste-genre").innerHTML += post_data[i].waste_type;
-                        else
-                        template_clone.querySelector("#waste-genre").style.display = 'none';
+                        if(post_data[i].waste_type != ''){
+                            template_clone.querySelector("#waste-genre").innerHTML += post_data[i].waste_type;}
+                        else{
+                            template_clone.querySelector("#waste-genre").style.display = 'none';}
+
+                        if(post_data[i].resolved != undefined){
+                            template_clone.querySelector("#resolved").innerHTML = '<i class="fa-regular fa-circle-check"></i>&nbsp;&nbsp;Resolved';
+                        }
                         template_clone.querySelector("#distance").dataset.lat = post_data[i].location.coordinates[0];
                         template_clone.querySelector("#distance").dataset.lon = post_data[i].location.coordinates[1];
                         template_clone.querySelector("#time").dataset.timestamp = post_data[i].timestamp;
@@ -256,7 +231,7 @@
                 lat = home_lat;
                 lon = home_lon;
             }
-            xhr.open("POST", `/load?page=${page_no}&order=${post_order}&lat=${lat}&lon=${lon}&uid=${uid}`, true);
+            xhr.open("POST", `/load_feed?page=${page_no}&order=${post_order}&lat=${lat}&lon=${lon}&uid=${uid}`, true);
             xhr.send();
             page_no++;
         }

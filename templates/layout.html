@@ -17,6 +17,7 @@
 	
 	<script src="https://kit.fontawesome.com/13deb536c6.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -28,36 +29,135 @@
 
         <div class="font">
 
-        <nav class="navbar bg-body-tertiary" id="header">
+        <nav class="navbar hide-bar" id="header">
             <div class="container-fluid">
             <a class="navbar-brand" href="/">
-                <img src="{{url_for('static', filename='ananees800.png')}}" alt="Logo" width="55" height="55" class="logo">
-            
+                <img src="{{url_for('static', filename='ananees800.png')}}" alt="Logo" width="60" class="logo">
             </a>
             <ul class="nav justify-content-end">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="/login" id="login">Login</a>
+                    <a class="nav-link" aria-current="page" href="/about">
+                        <i class="fa-solid fa-square-arrow-up-right fa-lg my-4"></i>
+                    </a>
                 </li>
             </ul>
             </div>
         </nav>
+        <div id="side-bar" class="side-bar d-flex flex-column align-items-center align-items-sm-start px-1 pe-lg-3 px-xl-4 pt-5 min-vh-100 position-fixed hide-bar">
+            <a class="sign px-0" >
+                <img src="{{url_for('static', filename='ananees800.png')}}" width="55px" class=" opacity-75 ms-lg-3 ms-xl-0 side-logo img-fluid">
+                <span class="ms-lg-1 d-none d-xl-inline me-0 me-xl-3">RacoonCycle</span>
+            </a>
+            <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start mt-5" id="menu">
+                <li>
+                    <a href="/feed" class="nav-link align-middle px-3 ms-lg-3 py-0 my-3"  id="feed-link">
+                        <i class="fa-solid fa-house fa-lg my-4"></i> <span class="ms-2 d-none d-xl-inline">Feed</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/upload" class="nav-link align-middle px-3 ms-lg-3 py-0 my-3"  id="upload-link">
+                        <i class="fa-solid fa-arrow-up-from-bracket fa-lg my-4"></i> <span class="ms-2 d-none d-xl-inline">Upload</span></a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link align-middle px-3 ms-lg-3 py-0 my-3 profile-link"  id="profile-link">
+                        <i class="fa-solid fa-user fa-lg my-4"></i> <span class="ms-2 d-none d-xl-inline">Profile</span></a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link align-middle px-3 ms-lg-3 py-0 my-3"  id="chatbot-link">
+                        <i class="fa-solid fa-comment fa-lg my-4"></i> <span class="ms-2 d-none d-xl-inline">Chatbot</span> </a>
+                </li>
+                <li>
+                    <a href="/about" class="nav-link align-middle px-3 ms-lg-3 py-0 my-3"  id="about-link">
+                        <i class="fa-solid fa-square-arrow-up-right fa-lg my-4"></i> <span class="ms-2 d-none d-xl-inline">About</span> </a>
+                </li>
+            </ul>
+        </div>
+        <div id="bottom-nav" class="bottom-nav align-items-center hide-bar">
+            <div class="row h-100 align-items-center">
+            <div class="col"><a href="/feed" id="feed-linkm"><i class="fa-solid fa-house fa-xl" ></i></a></div>
+            <div class="col"><a href="/upload" id="upload-linkm"><i class="fa-solid fa-plus fa-xl"></i></a></div>
+            <div class="col"><a href="/profile" id="profile-linkm" class="profile-link"><i class="fa-solid fa-user fa-xl"></i></a></div>
+            <div class="col"><a href="#" id="chatbot-linkm"><i class="fa-solid fa-comment fa-xl"></i></a></div>
 
-        <div class="left-hander">
-            
+            </div>
         </div>
 
+
+        <div class="margin-start" id="content">
         {% block content %}
         {% endblock %}
-
+        </div>
     </div>
 
     </body>
     <script>
+
+        document.addEventListener("DOMContentLoaded", function(){
+            var profile_link = document.getElementsByClassName("profile-link");
+            var user_id = getCookie('user_id');
+            profile_link[0].href ='/profile?id=' + user_id;
+            profile_link[1].href ='/profile?id=' + user_id;
+            selection();
+        });
+
+        function selection() {
+            var link = window.location.pathname + window.location.search;
+
+            switch(link){
+                case '/feed':
+                    $('#feed-link').addClass('selected px-xl-5 py-xl-2');
+                    $('#feed-linkm').addClass('selectedm px-3 py-2');
+                    break;
+                case '/upload':
+                    $('#upload-link').addClass('selected px-xl-5 py-xl-2');
+                    $('#upload-linkm').addClass('selectedm px-3 py-2');
+                    break;
+                case '/profile?id=' + getCookie('user_id'):
+                    $('#profile-link').addClass('selected px-xl-5 py-xl-2');
+                    $('#profile-linkm').addClass('selectedm px-3 py-2');
+                    break;
+                case '/about':
+                    $('#about-link').addClass('selected px-xl-5 py-xl-2');
+                    //$('#about-linkm').addClass('selectedm px-3 py-2');
+                    break;
+            }
+
+        }
+
+
         // Hide header on scroll down
 var didScroll;
 var lastScrollTop = 0;
 var delta = 5;
 var navbarHeight = $('nav').outerHeight();
+
+handleWindowResize();
+
+function handleWindowResize() {
+    const currentWidth = window.innerWidth;
+    var side_bar = document.querySelector('#side-bar');
+    var content = document.querySelector("#content");
+    var bottom_nav = document.querySelector('#bottom-nav');
+    var header = document.querySelector('#header');
+
+    var small = 992;
+    if(currentWidth < small ){
+        side_bar.classList.add('hide-bar');
+        content.classList.remove('margin-start');
+        bottom_nav.classList.remove('hide-bar');
+        header.classList.remove('hide-bar');
+    }
+    else if(currentWidth >= small){
+        side_bar.classList.remove('hide-bar');
+        content.classList.add('margin-start');
+        bottom_nav.classList.add('hide-bar');
+        header.classList.add('hide-bar');
+    }
+
+    content.style.marginLeft = side_bar.offsetWidth;
+  }
+  
+window.addEventListener("resize", handleWindowResize);
 
 $(window).scroll(function(event){
     didScroll = true;
@@ -89,6 +189,22 @@ function hasScrolled() {
     lastScrollTop = st;
 
 }
+
+
+function getCookie(cname) {
+    let name = cname + "=";
+    let ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
     </script>
     </html>
 
