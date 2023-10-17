@@ -21,24 +21,34 @@ def storePost(dict):
 
 
 ## For feed page
-def getPostsForFeed(page_no=1, limit = 2, uid = None, location = None):
+def getPostsForFeed(page_no=1, limit = 2, uid = None, location = None, sort = None):
     racoon_db = client.racoon_db
     post_collection = racoon_db.post
+    resolved_condition = {"$match": {"resolved": { "$exists": 1 }}}
+    unresolved_condition = {"$match": {"resolved": { "$exists": 0 }}}
     posts = []
     skip = (int(page_no)-1)*limit
     #Latest post 
     if(uid is None and location is None):
-        for i in post_collection.find().sort("_id", -1).skip(skip).limit(limit):
+        docs = []
+        if sort == 'resolved':
+            docs = post_collection.find({"resolved": { "$exists": 1 }}).sort("_id", -1).skip(skip).limit(limit)
+        elif sort == 'unresolved':
+            docs = post_collection.find({"resolved": { "$exists": 0 }}).sort("_id", -1).skip(skip).limit(limit)
+        else:
+            docs = post_collection.find().sort("_id", -1).skip(skip).limit(limit)
+            
+        for i in docs:
             i['user_name'] = fetchUserByUID(i['user_id'])['name']
             i['timestamp'] = i['_id'].generation_time
             posts.append(i)
-        return posts
+
     #Closest to Home
     elif(uid is not None):
         #get home coordinates from uid
         user_lat, user_lon = getUserHome(uid)
-        pipeline = [{
-                "$geoNear": {
+        pipeline = [ 
+        {"$geoNear": {
                     "near": {
                         "type": "Point",
                         "coordinates": [user_lat, user_lon]
@@ -47,17 +57,22 @@ def getPostsForFeed(page_no=1, limit = 2, uid = None, location = None):
                     "spherical": True,
                     "key": "location"  # Use the "location" field for geospatial indexing
                 }
-            }, { "$skip":skip }, { "$limit":limit }]
+            }, 
+        ]
+        if sort == 'resolved':
+            pipeline.append(resolved_condition)
+        elif sort == 'unresolved':
+            pipeline.append(unresolved_condition)
+
+        pipeline.extend([{ "$skip":skip }, { "$limit":limit }])
+        
         posts = list(post_collection.aggregate(pipeline))
         for i in posts:
             i['timestamp'] = i['_id'].generation_time
             i['user_name'] = fetchUserByUID(i['user_id'])['name']
-            print(i['distance'])
-        return posts
     
     #Closest to Current Location
     elif(location is not None):
-        print("FROM DB_ACCESS : ", location)
         pipeline = [{
                 "$geoNear": {
                     "near": {
@@ -68,13 +83,20 @@ def getPostsForFeed(page_no=1, limit = 2, uid = None, location = None):
                     "spherical": True,
                     "key": "location"  # Use the "location" field for geospatial indexing
                 }
-            }, { "$skip":skip }, { "$limit":limit }]
+            }]
+        if sort == 'resolved':
+            pipeline.append(resolved_condition)
+        elif sort == 'unresolved':
+            pipeline.append(unresolved_condition)
+        pipeline.extend([{ "$skip":skip }, { "$limit":limit }])
+
         posts = list(post_collection.aggregate(pipeline))
         for i in posts:
             i['timestamp'] = i['_id'].generation_time
             i['user_name'] = fetchUserByUID(i['user_id'])['name']
-            print(i['distance'])
-        return posts
+            #print(i['distance'])
+    
+    return posts
 
 def getPostsForProfile(profile_id, page_no=1, limit = 2):
     racoon_db = client.racoon_db
@@ -112,8 +134,6 @@ def postResolved(post_id, dict):
     if ObjectId.is_valid(post_id):
         post_id = ObjectId(post_id)
         dict['timestamp'] = datetime.now()
-        print(post_id)
-        print(dict)
         post_collection.update_one({'_id': post_id}, {'$set':{'resolved': dict}})
             
 
@@ -123,7 +143,6 @@ def registerDb(dict):
 
     query = {"email": dict['email']}
     user_document = user_collection.find_one(query)
-    print("Doc: ", user_document)
     if user_document:
         #email already exists
         return None
@@ -158,7 +177,6 @@ def fetchUserByUID(uid):
         if user_info is not None:
             user_info['join_time'] = user_info['_id'].generation_time
             user_info['post_count'] = len(user_info['posts'])
-            print("length -> ", len(user_info['posts']))
             del user_info['posts']
 
     return user_info
@@ -168,7 +186,6 @@ def getUserHome(uid):
     user_collection = racoon_db.user
     objInstance = ObjectId(uid)
     user = user_collection.find_one({"_id": objInstance})
-    print(user['coordinates'])
     lat = float(user['coordinates'].split(' ')[0])
     lon = float(user['coordinates'].split(' ')[1])
     

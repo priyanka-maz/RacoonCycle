@@ -4,7 +4,7 @@
     <head>
         <link rel="icon" href="static/ananees800.png">
 
-        <title>Profile</title>
+        <title>{{ user_info['name'] if user_info is not none else 'No Profile Found' }}</title>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     </head>
@@ -74,7 +74,11 @@
               </div>
         </div>
         {% else %}
-            <div class="error">*Sad Racoon noises</div>
+            <div class="error mt-3">
+                <h1 class="mb-5"><b>This page doesn't exist</b></h1>
+                <img src="{{url_for('static', filename='images/sad racoon.png')}}" class="img-fluid p-3">
+                <h3 class="mt-1">*sad racoon noises</h3>
+            </div>
         {% endif %}
 
     </body>

@@ -82,6 +82,8 @@
             </div>
         </div>
 
+        <div id="scroll-top" class="scroll-top" onclick="topFunction()"><i class="fa-solid fa-arrow-up"></i></div>
+
 
         <div class="margin-start" id="content">
         {% block content %}
@@ -94,6 +96,7 @@
 
         document.addEventListener("DOMContentLoaded", function(){
             var profile_link = document.getElementsByClassName("profile-link");
+            var scrollTop = document.getElementById('scroll-top');
             var user_id = getCookie('user_id');
             profile_link[0].href ='/profile?id=' + user_id;
             profile_link[1].href ='/profile?id=' + user_id;
@@ -139,6 +142,7 @@ function handleWindowResize() {
     var content = document.querySelector("#content");
     var bottom_nav = document.querySelector('#bottom-nav');
     var header = document.querySelector('#header');
+    var scrollTop = document.getElementById('scroll-top');
 
     var small = 992;
     if(currentWidth < small ){
@@ -146,6 +150,7 @@ function handleWindowResize() {
         content.classList.remove('margin-start');
         bottom_nav.classList.remove('hide-bar');
         header.classList.remove('hide-bar');
+        scrollTop.style.display = 'none';
     }
     else if(currentWidth >= small){
         side_bar.classList.remove('hide-bar');
@@ -156,6 +161,19 @@ function handleWindowResize() {
 
     content.style.marginLeft = side_bar.offsetWidth;
   }
+
+window.onscroll = function scrollToTop(){
+    var scrollTop = document.getElementById('scroll-top');
+    if(document.body.scrollTop > 200){
+        scrollTop.classList.add('scroll-top-visible');
+    }
+    else{
+        scrollTop.classList.remove('scroll-top-visible');
+    }
+}
+function topFunction() {
+    document.body.scrollTop = 0;
+}
   
 window.addEventListener("resize", handleWindowResize);
 

@@ -69,21 +69,23 @@ def load_feed():
     time.sleep(0.2)
     page = request.args.get('page')
     order = request.args.get('order')
+    sort = request.args.get('sort')
+    print("Sort value = ", sort)
     if(order == 'latest'):
         print('\n\nLATEST\n\n')
-        posts = getPostsForFeed(page_no=page)
+        posts = getPostsForFeed(page_no=page, sort=sort)
         return json.dumps(posts, default=str)
     elif(order == 'home'):
         print('\n\nCLOSE to HOME\n\n')
         uid = request.args.get('uid')
-        posts = getPostsForFeed(page_no=page, uid=uid)
+        posts = getPostsForFeed(page_no=page, uid=uid, sort=sort)
         return json.dumps(posts, default=str)
-    elif(order == 'current'):
-        print('\n\nCLOSE to CURRENT LOC\n\n')
+    elif(order == 'location'):
+        print('\n\nCLOSE to CURRENT LOCATION\n\n')
         lat = request.args.get('lat')
         lon = request.args.get('lon')
-        print(lat, lon)
-        posts = getPostsForFeed(page_no=page, location = [float(lat), float(lon)])
+        posts = getPostsForFeed(page_no=page, location = [float(lat), float(lon)], sort=sort)
+        print("Location Posts - > ",posts)
         return json.dumps(posts, default=str)
 
 @app.route('/load_profile', methods=['POST', 'GET'])

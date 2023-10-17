@@ -4,7 +4,7 @@
 <head>
     <link rel="icon" href="static/ananees800.png">
 
-    <title>{{ post['description'] }}</title>
+    <title>{{ post['description'] if post is not none else 'No Post Found' }} </title>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     
@@ -60,7 +60,7 @@
               
               <!--RESOLVED FORM and button displayed if not resolved-->
               {% if post.get('resolved') is none %}
-              <button class="take-action py-3 px-4 m-2" id ="action-taken">&nbsp; Action Taken &nbsp;</button>
+              <button class="take-action py-3 px-4 m-2" id ="action-taken">&nbsp; Mark Resolved &nbsp;</button>
                 <form action="/post" name="form" class="needs-validation visually-hidden" enctype="multipart/form-data" novalidate method="post" id="resolved-form">
                     <div id="space" class="py-3"> </div>
                     <div class="form-holder" id="form-holder">
@@ -139,7 +139,11 @@
               
         </div>
         {% else %}
-            <div class="error">*Sad Racoon noises</div>
+        <div class="error mt-3">
+            <h1 class="mb-5"><b>This page doesn't exist</b></h1>
+            <img src="{{url_for('static', filename='images/sad racoon.png')}}" class="img-fluid p-3">
+            <h3 class="mt-1">*sad racoon noises</h3>
+        </div>
         {% endif %}
 
         <div class="my-5 py-1"></div>
@@ -157,10 +161,10 @@
         var resolved_close = document.getElementById("resolved-close");
 
         action_taken.addEventListener("mouseover", function(){
-            action_taken.innerHTML = "<i class='fa-solid fa-check fa-lg fa-fade'></i> &nbsp; Action Taken";
+            action_taken.innerHTML = "<i class='fa-solid fa-check fa-lg fa-fade'></i> &nbsp; Mark Resolved";
         })
         action_taken.addEventListener("mouseleave", function(){
-            action_taken.innerHTML = "Action Taken";
+            action_taken.innerHTML = "Mark Resolved";
         })
 
         action_taken.addEventListener("click", function(){

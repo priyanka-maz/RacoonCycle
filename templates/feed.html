@@ -27,23 +27,7 @@
     <body class="pg-bg">
         <div class="header-spacing"></div>
 
-<!--FROM DB-->
-        <div class="post post-narrow text-center py-3">
-            <div class="sort-by" id="sort-by">
-                <div class="form-check form-check-inline m-1">
-                    <input class="form-check-input" type="radio" name="sort-by" id="latest" value="latest">
-                    <label class="form-check-label px-3 py-1 px-lg-4 py-lg-2" for="latest">Latest</label>
-                </div>
-                <div class="form-check form-check-inline m-1">
-                    <input class="form-check-input" type="radio" name="sort-by" id="home-location" value="home">
-                    <label class="form-check-label px-3 py-1 px-lg-4 py-lg-2" for="home-location">Home</label>
-                </div>
-                <div class="form-check form-check-inline m-1">
-                    <input class="form-check-input" type="radio" name="sort-by" id="current-location" value="location">
-                    <label class="form-check-label px-3 py-1 px-lg-4 py-lg-2" for="current-location" id="current-location-label">Location</label>
-                </div>
-            </div>
-        </div>
+        
         <template id="template">
             <div class="post post-narrow">
             <a id="link" href="post?id=">
@@ -74,6 +58,41 @@
             </a>
         </div>
         </template>
+
+        
+            <div class="order-by mt-xl-0 mt-4 mt-lg-0" id="order-by">
+                <div class="form-check form-check-inline m-1">
+                    <input class="form-check-input" type="radio" name="order-by" id="latest" value="latest">
+                    <label class="form-check-label px-3 px-lg-5 py-3" for="latest"><i class="fa-solid fa-clock"></i>&nbsp;&nbsp;Latest</label>
+                </div>
+                <div class="form-check form-check-inline m-1">
+                    <input class="form-check-input" type="radio" name="order-by" id="home-location" value="home">
+                    <label class="form-check-label px-3 px-lg-5 py-3" for="home-location"><i class="fa-solid fa-house"></i>&nbsp;&nbsp;Home</label>
+                </div>
+                <div class="form-check form-check-inline m-1">
+                    <input class="form-check-input" type="radio" name="order-by" id="current-location" value="location">
+                    <label class="form-check-label px-3 px-lg-5 py-3" for="current-location" id="current-location-label"><i class="fa-solid fa-location-crosshairs"></i>&nbsp;&nbsp;Location</label>
+                </div>
+            </div>
+            <br>
+            <div class="post post-narrow text-center py-3">
+
+            <div class="sort-by" id="sort-by">
+                <div class="form-check form-check-inline m-1">
+                    <input class="form-check-input" type="radio" name="sort-by" id="resolved" value="resolved">
+                    <label class="form-check-label px-3 px-lg-4 py-2" for="resolved">Resolved</label>
+                </div>
+                <div class="form-check form-check-inline m-1">
+                    <input class="form-check-input" type="radio" name="sort-by" id="unresolved" value="unresolved">
+                    <label class="form-check-label px-3 px-lg-4 py-2" for="unresolved">Unresolved</label>
+                </div>
+                <div class="form-check form-check-inline m-1">
+                    <input class="form-check-input" type="radio" name="sort-by" id="all" value="all">
+                    <label class="form-check-label px-3 px-lg-4 py-2" for="all" id="current-location-label">All</label>
+                </div>
+            </div>
+        </div>
+
         <div id="post-container">
             
 
@@ -87,7 +106,8 @@
 
     <script>
 
-        var home_lat, home_lon, current_lat, current_lon, order="latest";
+
+        var home_lat, home_lon, current_lat, current_lon, order="latest", post_sort='all';
 
         document.addEventListener("DOMContentLoaded", function(){
             userHomeLocation();
@@ -107,8 +127,6 @@
                     data = JSON.parse(xhr.responseText);
                     home_lat = data[0];
                     home_lon = data[1];
-                    //postLoad(false, "latest");
-                    //distance();
                 }
             };
             xhr.open("POST", `/userhome?uid=${uid}`, true);
@@ -116,24 +134,51 @@
         }
 
         var page_no = 1;
-        var sort_by = document.getElementById("sort-by");
-        sort_by.addEventListener("change", function(){
-            var option_selected = document.querySelector('input[name="sort-by"]:checked').value;
+        var order_by = document.getElementById("order-by");
+        order_by.addEventListener("change", orderChange);
+        function orderChange(){
+            var option_selected = document.querySelector('input[name="order-by"]:checked').value;
                 if(option_selected == 'latest'){
-                    order = 'latest';
                     page_no = 1;
-                    postLoad(true, 'latest');
+                    order = 'latest';
+                    postLoad(true, order);
                 }
                 else if(option_selected == 'home'){
-                    order = 'home';
                     page_no = 1;
-                    postLoad(true,'home');
+                    order = 'home';
+                    postLoad(true, order);
                 }
                 else if(option_selected == 'location'){
                     currentLocation();
                     
                 }
-        });
+            }
+
+        var sort_by = document.getElementById("sort-by");
+        sort_by.addEventListener("change", sortChange);
+        function sortChange(){
+            var option_selected = document.querySelector('input[name="sort-by"]:checked');
+                if(option_selected.value == 'resolved'){
+                    post_sort = 'resolved';
+                    orderChange();
+                }
+                else if(option_selected.value == 'unresolved'){
+                    post_sort = 'unresolved';
+                    orderChange();
+                }
+                else if(option_selected.value == 'all'){
+                    post_sort = 'all';
+                    orderChange();
+                }
+                var selected_label = option_selected.nextElementSibling;
+                var unselected_radios = document.querySelectorAll('input[name="sort-by"]:not(:checked)');
+                selected_label.innerHTML = '<i class="fa-solid fa-check"></i>&nbsp;&nbsp;' + selected_label.innerHTML;
+                for (var i = 0; i < unselected_radios.length; i++) {
+                    unselected_radios[i].nextElementSibling.innerHTML = unselected_radios[i].value.charAt(0).toUpperCase() + unselected_radios[i].value.slice(1);
+                }
+            }
+
+
 
 
     //Get current location
@@ -145,17 +190,17 @@
             throw new Error("No geolocation");
         }
         function success(pos){
-            label.innerHTML = 'Location'
+            label.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>&nbsp;&nbsp;Location'
             current_lat = pos.coords.latitude;
             current_lon = pos.coords.longitude;
             console.log(current_lat, current_lon);
 
-            order = 'current';
             page_no = 1;
-            postLoad(true, 'current');
+            order = 'location';
+            postLoad(true, order);
         }
         function error(){
-            label.innerHTML = 'Location'
+            label.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>&nbsp;&nbsp;Location'
             document.querySelector('#current-location').checked = false;
             alert("No location service");
         }
@@ -231,7 +276,7 @@
                 lat = home_lat;
                 lon = home_lon;
             }
-            xhr.open("POST", `/load_feed?page=${page_no}&order=${post_order}&lat=${lat}&lon=${lon}&uid=${uid}`, true);
+            xhr.open("POST", `/load_feed?page=${page_no}&order=${post_order}&sort=${post_sort}&lat=${lat}&lon=${lon}&uid=${uid}`, true);
             xhr.send();
             page_no++;
         }
